@@ -1,4 +1,5 @@
 import { defineConfig, lazyPlugins } from 'vite-plus'
+import { cloudflare } from '@cloudflare/vite-plugin'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
@@ -211,5 +212,6 @@ export default defineConfig({
       'bun.lock',
     ],
   },
-  plugins: lazyPlugins(() => [react()]),
+  // The unit tests run in jsdom; the Worker runtime would claim Vitest's server.
+  plugins: lazyPlugins(() => [react(), process.env.VITEST ? [] : cloudflare()]),
 })
