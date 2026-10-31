@@ -4,15 +4,15 @@ A playable low-poly fantasy tower-defense prototype on an organic Kenney hex isl
 
 ## Technology
 
-React, TypeScript, Vite, Three.js, React Three Fiber, Drei, Zustand, Vitest, Testing Library, Playwright, ESLint, Prettier, and Bun.
+React, TypeScript, Three.js, React Three Fiber, Drei, Zustand, Testing Library, and Playwright. [Vite+](https://viteplus.dev) (`vp`) runs the dev server, build, Vitest, Oxlint, and Oxfmt, with Bun as the package manager. The build deploys as a Cloudflare Worker that serves static assets.
 
 ## Setup
 
-Requires Node.js 20+, Bun 1.3+, and a browser with WebGL support.
+Requires [Vite+](https://viteplus.dev/guide/) and a browser with WebGL support. `vp` installs the Bun version pinned in `package.json`.
 
 ```bash
-bun install
-bun run dev
+vp install
+vp dev
 ```
 
 ## Controls
@@ -26,11 +26,17 @@ bun run dev
 ## Validation
 
 ```bash
-bun run check
-bun run test:e2e
+vp check          # format, lint, and type checks
+vp test run       # unit tests (`vp test` watches)
+vp run build      # tsc -b, then the Worker build in dist/
+vp run test:e2e   # Playwright against the build, served by workerd
 ```
 
-The individual typecheck, lint, formatting, unit-test, build, and Playwright commands remain available through `package.json`.
+`vp run check` runs the first three in order. `vp check --fix` applies formatting and lint fixes.
+
+## Deployment
+
+`wrangler.jsonc` declares an assets-only Worker with single-page-app fallback. After `vp run build`, `vp exec wrangler deploy` publishes `dist/` using the generated `dist/wrangler.json`.
 
 ## Project map
 

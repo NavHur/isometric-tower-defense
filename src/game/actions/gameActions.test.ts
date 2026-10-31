@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { PATH_LENGTH } from '../config/map'
 import { createInitialState } from '../state/useGameStore'
 import { advanceGame, startNextWave } from './advanceGame'

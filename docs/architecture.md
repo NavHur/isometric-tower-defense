@@ -2,7 +2,7 @@
 
 ## Foundation
 
-React owns the HTML interface and React Three Fiber scene graph. Vite supplies the static TypeScript build. Three.js provides real-time 3D rendering, while Zustand coordinates a small serializable game snapshot.
+React owns the HTML interface and React Three Fiber scene graph. Vite+ supplies the static TypeScript build, which a Cloudflare Worker serves as static assets. Three.js provides real-time 3D rendering, while Zustand coordinates a small serializable game snapshot.
 
 ## Deterministic simulation
 

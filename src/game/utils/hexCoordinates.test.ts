@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { BOARD_CENTER_OFFSET, MAP_POSITIONS } from '../config/map'
 import { hexDistance, hexToWorld } from './hexCoordinates'
 

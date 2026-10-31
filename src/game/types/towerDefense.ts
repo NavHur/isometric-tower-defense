@@ -9,7 +9,11 @@ export type HexPoint = {
 }
 
 export type GamePhase =
-  'ready' | 'wave-active' | 'intermission' | 'victory' | 'defeat'
+  | 'ready'
+  | 'wave-active'
+  | 'intermission'
+  | 'victory'
+  | 'defeat'
 
 export type EnemyKind = 'normal' | 'fast'
 export type TowerKind = 'pulseTower'
@@ -44,10 +48,14 @@ export type PendingSpawn = {
 }
 
 export type PlacementFailure =
-  'not-buildable' | 'occupied' | 'insufficient-funds' | 'game-ended'
+  | 'not-buildable'
+  | 'occupied'
+  | 'insufficient-funds'
+  | 'game-ended'
 
 export type PlacementResult =
-  { ok: true; towerId: string } | { ok: false; reason: PlacementFailure }
+  | { ok: true; towerId: string }
+  | { ok: false; reason: PlacementFailure }
 
 export type SimulationState = {
   phase: GamePhase
