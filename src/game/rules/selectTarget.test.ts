@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import type { EnemyState, TowerState } from '../types/towerDefense'
 import { selectTarget } from './selectTarget'
 
