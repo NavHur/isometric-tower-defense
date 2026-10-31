@@ -34,7 +34,6 @@
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.3",
-    "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "typescript": "~6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
@@ -42,5 +41,6 @@
   },
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0"
-  }
+  },
+  "packageManager": "bun@1.4.4"
 }
