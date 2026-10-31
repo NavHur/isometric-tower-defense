@@ -2,7 +2,7 @@ import { defineConfig, lazyPlugins } from 'vite-plus'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// https://viteplus.dev/config/
 export default defineConfig({
   lint: {
     plugins: ['oxc', 'typescript', 'unicorn'],
@@ -188,11 +188,6 @@ export default defineConfig({
     ],
   },
   test: {
-    // Vitest v4 compatibility: preserve mock call history.
-    // Remove after tests no longer rely on calls from setup or earlier tests.
-    // https://viteplus.dev/guide/vitest-v5#remove-unneeded-compatibility-settings
-    // https://vitest.dev/guide/migration/#clearmocks-is-enabled-by-default
-    clearMocks: false,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
