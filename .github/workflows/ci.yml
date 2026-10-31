@@ -1,0 +1,49 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  check:
+    name: Check, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      # Reads the vite-plus version from package.json; vp installs the bun
+      # version pinned in packageManager.
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: lts
+          cache: true
+          run-install: true
+      - run: vp check
+      - run: vp test run
+      - run: vp run build
+
+  e2e:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: lts
+          cache: true
+          run-install: true
+      - run: vp exec playwright install --with-deps chromium
+      # The Playwright web server previews the build through workerd.
+      - run: vp run build
+      - run: vp run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
