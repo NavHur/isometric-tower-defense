@@ -36,7 +36,8 @@
     "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.3",
     "jsdom": "^29.1.1",
-    "typescript": "~6.0.3",
+    "tsrs": "0.20.1-ts7.1.0-beta",
+    "typescript": "7.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
     "vite-plus": "1.4.0",
     "wrangler": "^4.156.0"
