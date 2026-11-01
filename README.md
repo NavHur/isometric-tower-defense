@@ -26,13 +26,14 @@ vp dev
 ## Validation
 
 ```bash
-vp check          # format, lint, and type checks
-vp test run       # unit tests (`vp test` watches)
-vp run build      # tsc -b, then the Worker build in dist/
-vp run test:e2e   # Playwright against the build, served by workerd
+vp check              # format, lint, and type checks
+vp run typecheck:tsc  # TypeScript 7's tsc -b, the reference checker
+vp test run           # unit tests (`vp test` watches)
+vp run build          # tsrs -b, then the Worker build in dist/
+vp run test:e2e       # Playwright against the build, served by workerd
 ```
 
-`vp run check` runs the first three in order. `vp check --fix` applies formatting and lint fixes.
+`vp run check` runs the first four in order. `vp run typecheck` runs tsrs, oxc's Rust port of the TypeScript 7 checker, alone; where tsrs and tsc disagree, tsc is the truth. `vp check --fix` applies formatting and lint fixes.
 
 ## Deployment
 
