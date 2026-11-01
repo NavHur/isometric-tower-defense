@@ -5,16 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "tsc -b && vp build",
+    "build": "tsrs -b && vp build",
     "preview": "vp preview",
-    "typecheck": "tsc -b --pretty",
+    "typecheck": "tsrs -b --pretty",
+    "typecheck:tsc": "tsc -b --pretty",
     "lint": "vp lint",
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "test": "vp test run",
     "test:watch": "vp test",
     "test:e2e": "playwright test",
-    "check": "vp check && vp test run && vp run build"
+    "check": "vp check && vp run typecheck:tsc && vp test run && vp run build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -36,7 +37,8 @@
     "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.3",
     "jsdom": "^29.1.1",
-    "typescript": "~6.0.3",
+    "tsrs": "0.20.1-ts7.1.0-beta",
+    "typescript": "7.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
     "vite-plus": "1.4.0",
     "wrangler": "^4.156.0"
