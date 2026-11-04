@@ -18,6 +18,7 @@ describe('selectTarget', () => {
     ]
     expect(selectTarget(tower, enemies)?.id).toBe('enemy-2')
   })
+
   it('uses stable IDs to break equal-progress ties', () => {
     const enemies: EnemyState[] = [
       { id: 'enemy-2', kind: 'normal', health: 60, pathProgress: 5 },
@@ -25,6 +26,7 @@ describe('selectTarget', () => {
     ]
     expect(selectTarget(tower, enemies)?.id).toBe('enemy-1')
   })
+
   it('ignores dead and out-of-range enemies', () => {
     expect(
       selectTarget(tower, [

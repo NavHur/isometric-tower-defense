@@ -11,6 +11,7 @@ describe('getPlacementFailure', () => {
       }),
     ).toBeNull()
   })
+
   it('rejects path and decoration tiles', () => {
     const state = createInitialState()
     expect(getPlacementFailure(state, 'pulseTower', { q: -6, r: 3 })).toBe(
@@ -20,6 +21,7 @@ describe('getPlacementFailure', () => {
       'not-buildable',
     )
   })
+
   it('rejects occupied and unaffordable tiles', () => {
     const state = createInitialState()
     const occupied = {
