@@ -15,7 +15,7 @@ type Vector3Tuple = readonly [number, number, number]
 
 interface GlowProps {
   position: Vector3Tuple
-  /** 1 at the glow's peak, falling to 0 as it fades. */
+  /** 0 to 1: how intense the glow is this frame. */
   strength: number
 }
 
