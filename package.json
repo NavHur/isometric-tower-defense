@@ -15,7 +15,7 @@
     "test": "vp test run",
     "test:watch": "vp test",
     "test:e2e": "playwright test",
-    "check": "vp check && vp run typecheck:tsc && vp test run && vp run build"
+    "check": "vp fmt --check && vp lint && vp run typecheck && vp test run && vp build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

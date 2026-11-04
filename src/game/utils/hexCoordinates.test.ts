@@ -4,7 +4,7 @@ import { hexDistance, hexToWorld } from './hexCoordinates'
 
 describe('hex coordinates', () => {
   it('maps axial neighbors to Kenney pointy-hex spacing', () => {
-    expect(hexToWorld({ q: 1, r: 0 })).toEqual([1, 0, 0])
+    expect(hexToWorld({ q: 1, r: 0 })).toStrictEqual([1, 0, 0])
     const [x, y, z] = hexToWorld({ q: 0, r: 1 })
     expect(x).toBe(0.5)
     expect(y).toBe(0)

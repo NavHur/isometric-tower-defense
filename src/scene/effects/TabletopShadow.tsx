@@ -4,7 +4,7 @@ const SHADOW_LAYERS = [
   { opacity: 0.065, scale: 0.43 },
 ] as const
 
-type TabletopShadowProps = {
+interface TabletopShadowProps {
   radius: number
   y: number
 }

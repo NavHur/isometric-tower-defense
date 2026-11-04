@@ -1,6 +1,16 @@
 import { TOWER_STATS } from '../game/config/balance'
 import { useGameStore } from '../game/state/useGameStore'
 
+interface BuildButtonState {
+  isSelected: boolean
+  canAfford: boolean
+}
+
+function buildButtonLabel({ isSelected, canAfford }: BuildButtonState) {
+  if (isSelected) return 'Building…'
+  return canAfford ? 'Build tower' : 'Need gold'
+}
+
 export function BuildTray() {
   const selectedBuild = useGameStore((state) => state.selectedBuild)
   const placementMessage = useGameStore((state) => state.placementMessage)
@@ -29,7 +39,7 @@ export function BuildTray() {
           disabled={!canAfford && !isSelected}
           onClick={() => selectBuild(isSelected ? null : 'pulseTower')}
         >
-          {isSelected ? 'Building…' : canAfford ? 'Build tower' : 'Need gold'}
+          {buildButtonLabel({ isSelected, canAfford })}
         </button>
         {isSelected ? (
           <button

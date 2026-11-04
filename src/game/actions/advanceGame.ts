@@ -14,7 +14,7 @@ function spawnEnemies(state: SimulationState, delta: number): SimulationState {
   let countdown = state.spawnCountdown - delta
   const pending = [...state.pendingSpawns]
   const enemies = [...state.enemies]
-  let nextEnemyId = state.nextEnemyId
+  let { nextEnemyId } = state
 
   while (pending.length > 0 && countdown <= 0) {
     const spawn = pending.shift()
@@ -82,7 +82,7 @@ function resolveProjectiles(
     return [{ ...projectile, travelRemaining }]
   })
 
-  let currency = state.currency
+  let { currency } = state
   const enemies = state.enemies.flatMap((enemy) => {
     const health = enemy.health - (damageByEnemy.get(enemy.id) ?? 0)
     if (health <= 0) {
@@ -96,7 +96,7 @@ function resolveProjectiles(
 }
 
 function fireTowers(state: SimulationState, delta: number): SimulationState {
-  let nextProjectileId = state.nextProjectileId
+  let { nextProjectileId } = state
   const projectiles: ProjectileState[] = [...state.projectiles]
   const towers: TowerState[] = state.towers.map((tower) => {
     const stats = TOWER_STATS[tower.kind]
@@ -169,8 +169,8 @@ export function advanceGame(
 
 export function startNextWave(state: SimulationState): SimulationState {
   if (state.phase !== 'ready' && state.phase !== 'intermission') return state
-  const wave = WAVES[state.currentWave]
-  if (!wave) return state
+  const wave = WAVES.at(state.currentWave)
+  if (wave === undefined) return state
   return {
     ...state,
     phase: 'wave-active',

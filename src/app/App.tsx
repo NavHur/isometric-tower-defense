@@ -8,8 +8,8 @@ export function App() {
     const cancelBuild = (event: KeyboardEvent) => {
       if (event.key === 'Escape') useGameStore.getState().selectBuild(null)
     }
-    window.addEventListener('keydown', cancelBuild)
-    return () => window.removeEventListener('keydown', cancelBuild)
+    globalThis.addEventListener('keydown', cancelBuild)
+    return () => globalThis.removeEventListener('keydown', cancelBuild)
   }, [])
 
   return (

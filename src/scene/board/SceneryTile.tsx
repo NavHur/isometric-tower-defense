@@ -30,7 +30,7 @@ const SCENERY_MODELS = [
   MODEL_PATHS.grassForest,
 ] as const
 
-type SceneryTileProps = {
+interface SceneryTileProps {
   index: number
   position: HexPosition
 }

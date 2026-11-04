@@ -9,7 +9,7 @@ describe('getPathPresentation', () => {
     [{ q: -2, r: 5 }, 'corner', 0],
     [{ q: 9, r: -8 }, 'end', Math.PI / 3],
   ] as const)('presents path tile %o', (position, kind, rotation) => {
-    expect(getPathPresentation(position)).toEqual({ kind, rotation })
+    expect(getPathPresentation(position)).toStrictEqual({ kind, rotation })
   })
 
   it('uses only gentle corners along the authored route', () => {

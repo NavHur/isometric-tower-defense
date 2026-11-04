@@ -3,21 +3,23 @@ import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { KenneyModel } from '../assets/KenneyModel'
 import { MODEL_PATHS } from '../assets/modelPaths'
 import { getPathPresentation } from './boardPresentation'
+import type { PathPresentation } from './boardPresentation'
 
-type PathTileProps = { position: HexPosition }
+const PATH_MODELS: Record<PathPresentation['kind'], string> = {
+  start: MODEL_PATHS.pathStart,
+  end: MODEL_PATHS.pathEnd,
+  corner: MODEL_PATHS.pathCorner,
+  cornerSharp: MODEL_PATHS.pathCornerSharp,
+  straight: MODEL_PATHS.pathStraight,
+}
+
+interface PathTileProps {
+  position: HexPosition
+}
 
 export function PathTile({ position }: PathTileProps) {
   const presentation = getPathPresentation(position)
-  const path =
-    presentation.kind === 'start'
-      ? MODEL_PATHS.pathStart
-      : presentation.kind === 'end'
-        ? MODEL_PATHS.pathEnd
-        : presentation.kind === 'corner'
-          ? MODEL_PATHS.pathCorner
-          : presentation.kind === 'cornerSharp'
-            ? MODEL_PATHS.pathCornerSharp
-            : MODEL_PATHS.pathStraight
+  const path = PATH_MODELS[presentation.kind]
   const [x, , z] = hexToWorld(position)
 
   return (

@@ -68,7 +68,7 @@ export const DECORATION_CELLS: readonly HexPosition[] = [
   { q: 9, r: -7 },
 ]
 
-const mapKeys = new Set(MAP_POSITIONS.map(hexKey))
+const mapKeys = new Set(MAP_POSITIONS.map((position) => hexKey(position)))
 const waterByKey = new Map<string, HexPosition>()
 for (const position of MAP_POSITIONS) {
   for (const direction of HEX_DIRECTIONS) {
@@ -85,8 +85,8 @@ export const WATER_POSITIONS = [...waterByKey.values()]
 const worldPositions = MAP_POSITIONS.map((position) => hexToWorld(position))
 const minX = Math.min(...worldPositions.map(([x]) => x))
 const maxX = Math.max(...worldPositions.map(([x]) => x))
-const minZ = Math.min(...worldPositions.map(([, , z]) => z))
-const maxZ = Math.max(...worldPositions.map(([, , z]) => z))
+const minZ = Math.min(...worldPositions.map((position) => position[2]))
+const maxZ = Math.max(...worldPositions.map((position) => position[2]))
 
 export const BOARD_CENTER_OFFSET: readonly [number, number, number] = [
   -(minX + maxX) / 2,

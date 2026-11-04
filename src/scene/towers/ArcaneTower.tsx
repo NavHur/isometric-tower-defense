@@ -7,7 +7,9 @@ import { KenneyModel } from '../assets/KenneyModel'
 import { MODEL_PATHS } from '../assets/modelPaths'
 import { TabletopShadow } from '../effects/TabletopShadow'
 
-type ArcaneTowerProps = { tower: TowerState }
+interface ArcaneTowerProps {
+  tower: TowerState
+}
 
 export function ArcaneTower({ tower }: ArcaneTowerProps) {
   const focus = useRef<Group>(null)
