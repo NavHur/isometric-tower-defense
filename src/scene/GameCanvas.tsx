@@ -5,7 +5,7 @@ import { GameScene } from './GameScene'
 import { useGameStore } from '../game/state/useGameStore'
 import { MODEL_PATHS } from './assets/modelPaths'
 
-Object.values(MODEL_PATHS).forEach((path) => useGLTF.preload(path))
+for (const path of Object.values(MODEL_PATHS)) useGLTF.preload(path)
 
 export function GameCanvas() {
   return (

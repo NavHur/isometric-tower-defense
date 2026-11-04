@@ -1,7 +1,7 @@
 import { Clone, useGLTF } from '@react-three/drei'
 import { Suspense } from 'react'
 
-type KenneyModelProps = {
+interface KenneyModelProps {
   path: string
   castShadow?: boolean
   receiveShadow?: boolean
@@ -22,10 +22,18 @@ function LoadedKenneyModel({
   )
 }
 
-export function KenneyModel(props: KenneyModelProps) {
+export function KenneyModel({
+  path,
+  castShadow,
+  receiveShadow,
+}: KenneyModelProps) {
   return (
     <Suspense fallback={null}>
-      <LoadedKenneyModel {...props} />
+      <LoadedKenneyModel
+        path={path}
+        castShadow={castShadow}
+        receiveShadow={receiveShadow}
+      />
     </Suspense>
   )
 }

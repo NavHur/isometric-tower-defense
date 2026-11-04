@@ -7,7 +7,7 @@ export function selectTarget(
   tower: TowerState,
   enemies: readonly EnemyState[],
 ): EnemyState | null {
-  const range = TOWER_STATS[tower.kind].range
+  const { range } = TOWER_STATS[tower.kind]
   const candidates = enemies.filter((enemy) => {
     if (enemy.health <= 0) return false
     const point = pathProgressToHexPoint(enemy.pathProgress)
