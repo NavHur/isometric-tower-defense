@@ -7,9 +7,9 @@ export function EndStateOverlay() {
 
   const won = phase === 'victory'
   return (
-    <section
+    <dialog
+      open
       className="end-overlay"
-      role="dialog"
       aria-modal="true"
       aria-labelledby="end-title"
     >
@@ -25,6 +25,6 @@ export function EndStateOverlay() {
       <button type="button" className="primary-action" onClick={restart}>
         Play again
       </button>
-    </section>
+    </dialog>
   )
 }

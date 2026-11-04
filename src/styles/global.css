@@ -259,7 +259,10 @@ button {
 .end-overlay {
   position: absolute;
   top: 50%;
+  right: auto;
   left: 50%;
+  margin: 0;
+  color: inherit;
   width: min(28rem, calc(100vw - 2rem));
   padding: 1.5rem;
   border: 1px solid var(--line);
