@@ -7,12 +7,7 @@ export function EndStateOverlay() {
 
   const won = phase === 'victory'
   return (
-    <dialog
-      open
-      className="end-overlay"
-      aria-modal="true"
-      aria-labelledby="end-title"
-    >
+    <dialog open className="end-overlay" aria-labelledby="end-title">
       <p className="utility-label">{won ? 'Realm secure' : 'Defense failed'}</p>
       <h2 id="end-title">
         {won ? 'All waves cleared' : 'The stronghold was breached'}
