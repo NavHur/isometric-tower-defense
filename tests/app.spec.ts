@@ -52,9 +52,30 @@ async function buildAndReadGold(page: Page): Promise<number> {
   return readResource(page, 'Gold')
 }
 
+/** Counts the animation frames the page renders in one second, in the page. */
+const COUNT_FRAMES_FOR_ONE_SECOND = `new Promise((resolve) => {
+  const start = performance.now()
+  let frames = 0
+  const tick = () => {
+    frames += 1
+    if (performance.now() - start < 1000) requestAnimationFrame(tick)
+    else resolve(frames)
+  }
+  requestAnimationFrame(tick)
+})`
+
+/**
+ * Wave 1's first kill from the build hex takes 11.05 s of game time
+ * (simulated in advanceGame). GameLoop advances at most 0.25 s per rendered
+ * frame, so the kill needs at least 44 frames: about 11 s at 4 fps or more,
+ * but 44 s at 1 fps on a software-rendered CI runner.
+ */
+const FIRST_KILL_TIMEOUT_MS = 80_000
+
 test('places a tower and fights a wave without browser errors', async ({
   page,
 }) => {
+  test.slow()
   const errors = collectBrowserErrors(page)
   await page.goto('/')
   await expect(page.getByTestId('game-container')).toBeVisible()
@@ -64,12 +85,22 @@ test('places a tower and fights a wave without browser errors', async ({
     .poll(() => buildAndReadGold(page), { timeout: 15_000 })
     .toBeLessThan(startingGold)
   const goldAfterBuild = await readResource(page, 'Gold')
+  // Recorded so a timeout below can be told apart from a combat regression.
+  const framesPerSecond = await page.evaluate<number>(
+    COUNT_FRAMES_FOR_ONE_SECOND,
+  )
+  test.info().annotations.push({
+    type: 'frame rate before wave 1',
+    description: `${framesPerSecond} fps`,
+  })
 
   await page.getByRole('button', { name: 'Start wave 1' }).click()
   // Gold only rises above the post-build balance when the tower's shots land
   // and kill an enemy, so this proves projectiles and impacts ran.
   await expect
-    .poll(() => readResource(page, 'Gold'), { timeout: 25_000 })
+    .poll(() => readResource(page, 'Gold'), {
+      timeout: FIRST_KILL_TIMEOUT_MS,
+    })
     .toBeGreaterThan(goldAfterBuild)
   expect(errors).toEqual([])
 })
