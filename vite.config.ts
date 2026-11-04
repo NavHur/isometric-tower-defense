@@ -205,6 +205,7 @@ export default defineConfig({
       'playwright-report',
       'test-results',
       'bun.lock',
+      'tools/oxlint-plugin',
     ],
   },
   // The unit tests run in jsdom; the Worker runtime would claim Vitest's server.
