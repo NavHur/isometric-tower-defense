@@ -9,7 +9,7 @@ import type {
 } from '../types/towerDefense'
 
 const UNBUILDABLE_CELL_KEYS = new Set(
-  [...PATH_CELLS, ...DECORATION_CELLS].map(hexKey),
+  [...PATH_CELLS, ...DECORATION_CELLS].map((cell) => hexKey(cell)),
 )
 
 export function positionsMatch(left: HexPosition, right: HexPosition) {
@@ -30,4 +30,15 @@ export function getPlacementFailure(
   }
   if (state.currency < TOWER_STATS[kind].cost) return 'insufficient-funds'
   return null
+}
+
+/** Whether the tower selected for building could go on `position` now. */
+export function canPlaceSelectedAt(
+  state: SimulationState,
+  position: HexPosition,
+): boolean {
+  return (
+    state.selectedBuild !== null &&
+    getPlacementFailure(state, state.selectedBuild, position) === null
+  )
 }

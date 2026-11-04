@@ -1,5 +1,5 @@
 import { TOWER_STATS } from '../../game/config/balance'
-import { getPlacementFailure } from '../../game/rules/canPlaceTower'
+import { canPlaceSelectedAt } from '../../game/rules/canPlaceTower'
 import { useGameStore } from '../../game/state/useGameStore'
 import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { KenneyModel } from '../assets/KenneyModel'
@@ -8,13 +8,15 @@ import { MODEL_PATHS } from '../assets/modelPaths'
 export function PlacementPreview() {
   const selectedBuild = useGameStore((state) => state.selectedBuild)
   const hoveredTile = useGameStore((state) => state.hoveredTile)
+  const isValid = useGameStore(
+    (state) =>
+      state.hoveredTile !== null &&
+      canPlaceSelectedAt(state, state.hoveredTile),
+  )
   if (!selectedBuild || !hoveredTile) return null
 
-  const isValid =
-    getPlacementFailure(useGameStore.getState(), selectedBuild, hoveredTile) ===
-    null
   const [x, , z] = hexToWorld(hoveredTile)
-  const range = TOWER_STATS[selectedBuild].range
+  const { range } = TOWER_STATS[selectedBuild]
 
   return (
     <group position={[x, 0.215, z]}>
