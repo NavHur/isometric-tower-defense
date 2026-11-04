@@ -45,6 +45,8 @@ const offRules = {
   'vitest/prefer-to-be-truthy': 'off',
   // prefer-called-times covers the same calls.
   'vitest/prefer-called-once': 'off',
+  // Top-level suites keep the name of the component or function they test.
+  'vitest/prefer-lowercase-title': ['error', { ignoreTopLevelDescribe: true }],
   // Wrapping callback APIs needs `new Promise`.
   'promise/avoid-new': 'off',
 } as const satisfies OxlintConfig['rules']

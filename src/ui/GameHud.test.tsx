@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vite-plus/test'
 import { useGameStore } from '../game/state/useGameStore'
 import { GameHud } from './GameHud'
 
-describe('gameHud', () => {
+describe('GameHud', () => {
   beforeEach(() => useGameStore.getState().restart())
 
   it('renders the initial run resources', () => {
