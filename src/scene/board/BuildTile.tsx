@@ -8,6 +8,7 @@ import type { HexPosition } from '../../game/types/towerDefense'
 import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { KenneyModel } from '../assets/KenneyModel'
 import { MODEL_PATHS } from '../assets/modelPaths'
+import { BUILD_TARGET_LIFT } from './buildTarget'
 
 const HOVER_OPACITY = 0.34
 
@@ -56,7 +57,7 @@ function BuildTarget({ position }: BuildTileProps) {
 
   return (
     <mesh
-      position={[0, 0.245, 0]}
+      position={[0, BUILD_TARGET_LIFT, 0]}
       onClick={onClick}
       onContextMenu={stopPropagation}
       onPointerEnter={onPointerEnter}
