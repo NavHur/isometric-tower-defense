@@ -52,6 +52,8 @@ The lint rules live in `tools/oxlint/config.ts`: every category but restriction 
 - `src/scene` — React Three Fiber world, fantasy actors, and effects
 - `src/ui` — accessible resources, building, wave, and end-state controls
 - `public/models/kenney` — runtime Kenney assets and licenses
+- `tests` — Playwright end-to-end specs
+- `tools` — Oxlint config and the vendored `pbp` complexity plugin
 - `docs` — architecture and asset conventions
 
 ## Prototype balance
