@@ -162,6 +162,7 @@ export const lint: OxlintConfig = {
       rules: { 'max-lines-per-function': 'off' },
     },
     {
+      // The setup file registers a global afterEach(cleanup); it has no suite.
       files: ['src/test/setup.ts'],
       rules: { 'vitest/require-top-level-describe': 'off' },
     },
