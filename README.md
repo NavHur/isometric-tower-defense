@@ -26,13 +26,17 @@ vp dev
 ## Validation
 
 ```bash
-vp check          # format, lint, and type checks
-vp test run       # unit tests (`vp test` watches)
-vp run build      # tsc -b, then the Worker build in dist/
-vp run test:e2e   # Playwright against the build, served by workerd
+vp fmt --check      # oxfmt
+vp lint             # oxlint, type-aware, with TypeScript 7's checker (tsgolint)
+vp run typecheck    # tsrs -b, oxc's Rust port of the TypeScript 7 checker
+vp test run         # unit tests (`vp test` watches)
+vp run build        # tsrs -b, then the Worker build in dist/
+vp run test:e2e     # Playwright against the build, served by workerd
 ```
 
-`vp run check` runs the first three in order. `vp check --fix` applies formatting and lint fixes.
+`vp run check` runs format, lint, typecheck, unit tests, and the Vite build in order. `vp check --fix` applies formatting and lint fixes. `vp run typecheck:tsc` runs tsc 7 directly; where tsrs and tsc disagree, tsc is the truth.
+
+The lint rules live in `tools/oxlint/config.ts`: every category but restriction and nursery runs at error, with cyclomatic complexity capped at 16 (`complexity`) and cognitive complexity at 8 (`pbp/cognitive-complexity`, vendored from fleet's pedro-best-practices skill into `tools/oxlint-plugin/pbp.mjs`).
 
 ## Deployment
 
@@ -48,6 +52,8 @@ vp run test:e2e   # Playwright against the build, served by workerd
 - `src/scene` — React Three Fiber world, fantasy actors, and effects
 - `src/ui` — accessible resources, building, wave, and end-state controls
 - `public/models/kenney` — runtime Kenney assets and licenses
+- `tests` — Playwright end-to-end specs
+- `tools` — Oxlint config and the vendored `pbp` complexity plugin
 - `docs` — architecture and asset conventions
 
 ## Prototype balance

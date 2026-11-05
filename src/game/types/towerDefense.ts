@@ -1,9 +1,9 @@
-export type HexPosition = {
+export interface HexPosition {
   q: number
   r: number
 }
 
-export type HexPoint = {
+export interface HexPoint {
   q: number
   r: number
 }
@@ -18,7 +18,7 @@ export type GamePhase =
 export type EnemyKind = 'normal' | 'fast'
 export type TowerKind = 'pulseTower'
 
-export type TowerState = {
+export interface TowerState {
   id: string
   kind: TowerKind
   position: HexPosition
@@ -26,14 +26,14 @@ export type TowerState = {
   targetEnemyId: string | null
 }
 
-export type EnemyState = {
+export interface EnemyState {
   id: string
   kind: EnemyKind
   health: number
   pathProgress: number
 }
 
-export type ProjectileState = {
+export interface ProjectileState {
   id: string
   sourceTowerId: string
   targetEnemyId: string
@@ -42,7 +42,7 @@ export type ProjectileState = {
   travelRemaining: number
 }
 
-export type PendingSpawn = {
+export interface PendingSpawn {
   kind: EnemyKind
   delay: number
 }
@@ -57,7 +57,7 @@ export type PlacementResult =
   | { ok: true; towerId: string }
   | { ok: false; reason: PlacementFailure }
 
-export type SimulationState = {
+export interface SimulationState {
   phase: GamePhase
   isPaused: boolean
   currency: number

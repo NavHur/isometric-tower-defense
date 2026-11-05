@@ -10,7 +10,7 @@ describe('expandPath', () => {
         { q: 2, r: 0 },
         { q: 2, r: -2 },
       ]),
-    ).toEqual([
+    ).toStrictEqual([
       { q: 0, r: 0 },
       { q: 1, r: 0 },
       { q: 2, r: 0 },
@@ -18,8 +18,10 @@ describe('expandPath', () => {
       { q: 2, r: -2 },
     ])
   })
+
   it('creates the complete 26-cell authored route', () =>
     expect(PATH_CELLS).toHaveLength(26))
+
   it('rejects movement that is not an axial direction', () => {
     expect(() =>
       expandPath([

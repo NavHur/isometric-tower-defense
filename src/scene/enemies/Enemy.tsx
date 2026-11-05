@@ -6,7 +6,9 @@ import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { pathProgressToHexPoint } from '../../game/utils/pathProgressToHexPoint'
 import { TabletopShadow } from '../effects/TabletopShadow'
 
-type EnemyProps = { enemy: EnemyState }
+interface EnemyProps {
+  enemy: EnemyState
+}
 
 function Goblin() {
   return (

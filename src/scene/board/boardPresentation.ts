@@ -3,7 +3,7 @@ import { positionsMatch } from '../../game/rules/canPlaceTower'
 import type { HexPosition } from '../../game/types/towerDefense'
 import { HEX_DIRECTIONS } from '../../game/utils/hexCoordinates'
 
-type PathPresentation = {
+export interface PathPresentation {
   kind: 'start' | 'end' | 'straight' | 'corner' | 'cornerSharp'
   rotation: number
 }
@@ -14,7 +14,7 @@ function directionIndex(from: HexPosition, to: HexPosition) {
   const index = HEX_DIRECTIONS.findIndex(
     (direction) => direction.q === q && direction.r === r,
   )
-  if (index < 0) throw new Error('Path cells must be axial neighbors')
+  if (index === -1) throw new Error('Path cells must be axial neighbors')
   return index
 }
 
@@ -23,10 +23,10 @@ function rotatedSetMatches(
   desiredDirections: readonly number[],
   rotationSteps: number,
 ) {
-  const rotated = baseDirections.map(
-    (direction) => (direction + rotationSteps) % 6,
+  const rotated = new Set(
+    baseDirections.map((direction) => (direction + rotationSteps) % 6),
   )
-  return desiredDirections.every((direction) => rotated.includes(direction))
+  return desiredDirections.every((direction) => rotated.has(direction))
 }
 
 function findRotation(
@@ -42,7 +42,8 @@ function findRotation(
 
 export function getPathPresentation(position: HexPosition): PathPresentation {
   const index = PATH_CELLS.findIndex((cell) => positionsMatch(cell, position))
-  if (index < 0) throw new Error('Path presentation requested for a grass tile')
+  if (index === -1)
+    throw new Error('Path presentation requested for a grass tile')
 
   if (index === 0) {
     const connection = directionIndex(position, PATH_CELLS[1])
