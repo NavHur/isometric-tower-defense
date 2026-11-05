@@ -36,9 +36,13 @@ const offRules = {
   'unicorn/filename-case': 'off',
   // Tests import their globals from vitest (prefer-importing-vitest-globals).
   'vitest/no-importing-vitest-globals': 'off',
+  // Two suites reset the shared store in beforeEach; setup.ts runs afterEach(cleanup).
   'vitest/no-hooks': 'off',
+  // Suites keep a plain title naming the function or component under test.
   'vitest/prefer-describe-function-title': 'off',
+  // Every test would need an assertion count its straight-line expects already imply.
   'vitest/prefer-expect-assertions': 'off',
+  // Only src/main.tsx trips it: the app entry renders at module scope.
   'vitest/require-hook': 'off',
   // prefer-strict-boolean-matchers asks for toBe(true) instead.
   'vitest/prefer-to-be-falsy': 'off',
