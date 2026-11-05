@@ -15,8 +15,10 @@ function collectBrowserErrors(page: Page): string[] {
 /**
  * Grass hex (q -1, r 3), beside the path cells (-1, 4) and (0, 3), as an
  * offset from the canvas centre in world units along the camera's screen
- * axes. Derived from `hexToWorld`, `BOARD_CENTER_OFFSET` and the isometric
- * camera at (11, 12, 12) looking at the origin; y is down.
+ * axes. Derived from `hexToWorld`, `BOARD_CENTER_OFFSET`, the isometric
+ * camera at (11, 12, 12) looking at the origin, and the click mesh that
+ * `BuildTile` lifts 0.245 above the tile (without the lift y would be
+ * 1.7157); y is down.
  */
 const BUILD_HEX_SCREEN_UNITS = { x: -1.9722, y: 1.5185 }
 
@@ -71,18 +73,24 @@ const COUNT_FRAMES_FOR_ONE_SECOND = `new Promise((resolve) => {
  * but 44 s at 1 fps on a software-rendered CI runner.
  */
 const FIRST_KILL_TIMEOUT_MS = 80_000
+const BUILD_TIMEOUT_MS = 15_000
+/** Page load, the HUD reads and the one-second frame-rate probe. */
+const SETUP_HEADROOM_MS = 15_000
+/** Sums every wait, so the kill poll can use all of its budget before the test aborts. */
+const COMBAT_TEST_TIMEOUT_MS =
+  SETUP_HEADROOM_MS + BUILD_TIMEOUT_MS + FIRST_KILL_TIMEOUT_MS
 
 test('places a tower and fights a wave without browser errors', async ({
   page,
 }) => {
-  test.slow()
+  test.setTimeout(COMBAT_TEST_TIMEOUT_MS)
   const errors = collectBrowserErrors(page)
   await page.goto('/')
   await expect(page.getByTestId('game-container')).toBeVisible()
   const startingGold = await readResource(page, 'Gold')
   await page.getByRole('button', { name: 'Build tower' }).click()
   await expect
-    .poll(() => buildAndReadGold(page), { timeout: 15_000 })
+    .poll(() => buildAndReadGold(page), { timeout: BUILD_TIMEOUT_MS })
     .toBeLessThan(startingGold)
   const goldAfterBuild = await readResource(page, 'Gold')
   // Recorded so a timeout below can be told apart from a combat regression.
