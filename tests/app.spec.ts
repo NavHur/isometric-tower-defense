@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import { BOARD_CENTER_OFFSET } from '../src/game/config/map.ts'
+import type { HexPosition } from '../src/game/types/towerDefense.ts'
+import { hexToWorld } from '../src/game/utils/hexCoordinates.ts'
+import { BUILD_TARGET_LIFT } from '../src/scene/board/buildTarget.ts'
 import { baselineZoom } from '../src/scene/camera/baselineZoom.ts'
+import { projectToScreenUnits } from '../src/scene/camera/cameraView.ts'
+import type { ScreenUnits } from '../src/scene/camera/cameraView.ts'
 
 /** Collects uncaught page errors and console errors as they happen. */
 function collectBrowserErrors(page: Page): string[] {
@@ -12,24 +18,33 @@ function collectBrowserErrors(page: Page): string[] {
   return errors
 }
 
+/** Grass hex beside the path cells (-1, 4) and (0, 3). */
+const BUILD_HEX: HexPosition = { q: -1, r: 3 }
+
 /**
- * Grass hex (q -1, r 3), beside the path cells (-1, 4) and (0, 3), as an
- * offset from the canvas centre in world units along the camera's screen
- * axes. Derived from `hexToWorld`, `BOARD_CENTER_OFFSET`, the isometric
- * camera at (11, 12, 12) looking at the origin, and the click mesh that
- * `BuildTile` lifts 0.245 above the tile (without the lift y would be
- * 1.7157); y is down.
+ * Where the build hex's click target sits on screen, as an offset from the
+ * canvas centre in world units: the hex in world space, shifted by the
+ * board's centring and the target's lift above the tile, then projected
+ * through the isometric camera.
  */
-const BUILD_HEX_SCREEN_UNITS = { x: -1.9722, y: 1.5185 }
+function buildHexScreenUnits(): ScreenUnits {
+  const [x, , z] = hexToWorld(BUILD_HEX)
+  return projectToScreenUnits([
+    x + BOARD_CENTER_OFFSET[0],
+    BUILD_TARGET_LIFT,
+    z + BOARD_CENTER_OFFSET[2],
+  ])
+}
 
 /** Clicks the build hex through the canvas, where the raycaster finds it. */
 async function clickBuildHex(page: Page): Promise<void> {
   const box = await page.getByTestId('game-container').boundingBox()
   if (!box) throw new Error('game container has no bounding box')
   const zoom = baselineZoom(box.width, box.height)
+  const units = buildHexScreenUnits()
   await page.mouse.click(
-    box.x + box.width / 2 + BUILD_HEX_SCREEN_UNITS.x * zoom,
-    box.y + box.height / 2 + BUILD_HEX_SCREEN_UNITS.y * zoom,
+    box.x + box.width / 2 + units.x * zoom,
+    box.y + box.height / 2 + units.y * zoom,
   )
 }
 
