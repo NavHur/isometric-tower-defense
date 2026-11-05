@@ -1,4 +1,8 @@
-import { DECORATION_CELLS, PATH_CELLS } from '../../game/config/map'
+import {
+  DECORATION_CELLS,
+  PATH_CELLS,
+  PATH_LENGTH,
+} from '../../game/config/map'
 import { positionsMatch } from '../../game/rules/canPlaceTower'
 import type { HexPosition } from '../../game/types/towerDefense'
 import { hexToWorld } from '../../game/utils/hexCoordinates'
@@ -9,7 +13,7 @@ import { PathTile } from './PathTile'
 import { SceneryTile } from './SceneryTile'
 import { getPathPresentation } from './boardPresentation'
 
-const PATH_END = PATH_CELLS.at(-1)
+const PATH_END = PATH_CELLS[PATH_LENGTH]
 
 interface TileProps {
   position: HexPosition
@@ -36,7 +40,7 @@ function CastleTile({ position }: TileProps) {
 
 /** The land tile for one map hex: castle, path, scenery, or open grass. */
 export function BoardTile({ position }: TileProps) {
-  if (PATH_END && positionsMatch(position, PATH_END)) {
+  if (positionsMatch(position, PATH_END)) {
     return <CastleTile position={position} />
   }
   if (PATH_CELLS.some((cell) => positionsMatch(cell, position))) {
