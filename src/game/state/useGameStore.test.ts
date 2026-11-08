@@ -25,4 +25,37 @@ describe('useGameStore', () => {
       enemies: [],
     })
   })
+
+  it('rejects placement without a selected tool and leaves state unchanged', () => {
+    const state = useGameStore.getState()
+    expect(state.placeTower({ q: -4, r: 1 })).toStrictEqual({
+      ok: false,
+      reason: 'not-buildable',
+    })
+    expect(useGameStore.getState()).toBe(state)
+  })
+
+  it('clears the placement prompt when cancelling the build tool', () => {
+    useGameStore.getState().selectBuild('pulseTower')
+    expect(useGameStore.getState().placementMessage).toBe(
+      'Choose an open grass hex.',
+    )
+    useGameStore.getState().selectBuild(null)
+    expect(useGameStore.getState().placementMessage).toBeNull()
+    expect(useGameStore.getState().selectedBuild).toBeNull()
+  })
+
+  it('only toggles pause during an active wave', () => {
+    const ready = useGameStore.getState()
+    ready.togglePause()
+    expect(useGameStore.getState()).toBe(ready)
+    ready.startWave()
+    useGameStore.getState().togglePause()
+    expect(useGameStore.getState().isPaused).toBe(true)
+    const paused = useGameStore.getState()
+    paused.advanceGame(1)
+    expect(useGameStore.getState()).toBe(paused)
+    paused.togglePause()
+    expect(useGameStore.getState().isPaused).toBe(false)
+  })
 })
