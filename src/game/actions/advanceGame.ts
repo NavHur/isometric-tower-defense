@@ -95,7 +95,7 @@ function resolveProjectiles(
   return { ...state, enemies, projectiles, currency }
 }
 
-function updateTowerTarget(
+function withCooldownAndTarget(
   tower: TowerState,
   cooldownRemaining: number,
   targetEnemyId: string | null,
@@ -117,7 +117,7 @@ function fireTowers(state: SimulationState, delta: number): SimulationState {
     const cooldownRemaining = Math.max(0, tower.cooldownRemaining - delta)
     const target = selectTarget(tower, state.enemies)
     if (!target || cooldownRemaining > 0) {
-      return updateTowerTarget(tower, cooldownRemaining, target?.id ?? null)
+      return withCooldownAndTarget(tower, cooldownRemaining, target?.id ?? null)
     }
 
     const targetPoint = pathProgressToHexPoint(target.pathProgress)

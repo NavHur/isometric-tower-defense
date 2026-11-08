@@ -9,6 +9,7 @@ import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { KenneyModel } from '../assets/KenneyModel'
 import { MODEL_PATHS } from '../assets/modelPaths'
 import { BUILD_TARGET_LIFT } from './buildTarget'
+import { leaveBuildTarget } from './leaveBuildTarget'
 
 const HOVER_OPACITY = 0.34
 
@@ -18,12 +19,6 @@ interface BuildTileProps {
 
 function stopPropagation(event: ThreeEvent<MouseEvent>) {
   event.stopPropagation()
-}
-
-function leaveBuildTarget(position: HexPosition) {
-  document.body.style.cursor = 'default'
-  const { hoveredTile, setHoveredTile } = useGameStore.getState()
-  if (hoveredTile && positionsMatch(hoveredTile, position)) setHoveredTile(null)
 }
 
 /** Pointer handlers that hover, and on click build on, one grass hex. */
