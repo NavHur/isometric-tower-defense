@@ -1,9 +1,5 @@
-// Derived from fleet skills/pedro-best-practices/scripts/oxlint-plugin/pbp.mjs
-// at fleet ee9727e. Local traversal refactor characterized in ../complexity/pbp.test.ts.
-// Oxlint JS plugin `pbp`: Cognitive Complexity per the SonarSource whitepaper
-// (G. Ann Campbell, v1.7), scored the same way as fleet's pbp-complexity (crates/pbp-complexity/src/scorer.rs).
-// measure_complexity.py loads it for repositories whose oxlint config has no
-// cognitive-complexity rule of its own.
+// Oxlint plugin `pbp`: SonarSource Cognitive Complexity v1.7, derived from fleet's
+// pedro-best-practices oxlint-plugin/pbp.mjs at ee9727e; scores pinned by ../complexity/pbp.test.ts.
 
 const FUNCTIONS = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 const LOOPS = new Set(["ForStatement", "ForInStatement", "ForOfStatement", "WhileStatement", "DoWhileStatement"]);
@@ -147,7 +143,7 @@ class ComplexityScore {
     if (FUNCTIONS.has(node.type)) return this.visitFunction(node, nesting);
     if (LOOPS.has(node.type)) return this.visitLoop(node, nesting);
     switch (node.type) {
-      case "IfStatement": return this.visitIf(node, nesting, false);
+      case "IfStatement": return this.visitIf(node, nesting);
       case "ConditionalExpression": return this.visitConditional(node, nesting);
       case "SwitchStatement": return this.visitSwitch(node, nesting);
       case "CatchClause": return this.visitCatch(node, nesting);
@@ -161,11 +157,20 @@ class ComplexityScore {
     this.walkChildren(node, nesting);
   }
 
-  visitIf(node, nesting, elseIf) {
-    this.total += elseIf ? 1 : 1 + nesting;
+  visitIf(node, nesting) {
+    this.total += 1 + nesting;
+    this.walkIfBranches(node, nesting);
+  }
+
+  visitElseIf(node, nesting) {
+    this.total += 1;
+    this.walkIfBranches(node, nesting);
+  }
+
+  walkIfBranches(node, nesting) {
     this.walk(node.test, nesting);
     this.walk(node.consequent, nesting + 1);
-    if (node.alternate?.type === "IfStatement") return this.visitIf(node.alternate, nesting, true);
+    if (node.alternate?.type === "IfStatement") return this.visitElseIf(node.alternate, nesting);
     if (node.alternate) {
       this.total += 1;
       this.walk(node.alternate, nesting + 1);

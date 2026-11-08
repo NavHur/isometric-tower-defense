@@ -125,7 +125,7 @@ export const lint: OxlintConfig = {
     'dist',
     'playwright-report',
     'test-results',
-    // Vendored from fleet's pedro-best-practices skill; see its header.
+    // Derived from fleet's pedro-best-practices skill and edited here; see its header.
     'tools/oxlint-plugin',
   ],
   jsPlugins: [
