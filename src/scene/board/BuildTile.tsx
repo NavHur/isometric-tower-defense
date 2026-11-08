@@ -20,6 +20,12 @@ function stopPropagation(event: ThreeEvent<MouseEvent>) {
   event.stopPropagation()
 }
 
+function leaveBuildTarget(position: HexPosition) {
+  document.body.style.cursor = 'default'
+  const { hoveredTile, setHoveredTile } = useGameStore.getState()
+  if (hoveredTile && positionsMatch(hoveredTile, position)) setHoveredTile(null)
+}
+
 /** Pointer handlers that hover, and on click build on, one grass hex. */
 function useBuildTargetHandlers(position: HexPosition) {
   const setHoveredTile = useGameStore((state) => state.setHoveredTile)
@@ -36,11 +42,7 @@ function useBuildTargetHandlers(position: HexPosition) {
       document.body.style.cursor = building ? 'crosshair' : 'default'
       setHoveredTile(position)
     },
-    onPointerLeave: () => {
-      document.body.style.cursor = 'default'
-      const current = useGameStore.getState().hoveredTile
-      if (current && positionsMatch(current, position)) setHoveredTile(null)
-    },
+    onPointerLeave: () => leaveBuildTarget(position),
   }
 }
 
