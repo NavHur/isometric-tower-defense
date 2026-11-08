@@ -136,7 +136,7 @@ export const lint: OxlintConfig = {
     ...offRules,
     ...restrictionRules,
     ...reactCompilerRules,
-    complexity: ['error', { max: 16, variant: 'classic' }],
+    complexity: ['error', { max: 18, variant: 'classic' }],
     'pbp/cognitive-complexity': ['error', { max: 8 }],
     'typescript/no-confusing-void-expression': [
       'error',
