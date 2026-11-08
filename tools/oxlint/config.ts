@@ -171,6 +171,15 @@ export const lint: OxlintConfig = {
       env: { browser: false, node: true },
     },
     {
+      files: ['tools/complexity/**'],
+      rules: {
+        'import/no-nodejs-modules': [
+          'error',
+          { allow: ['node:child_process', 'node:fs', 'node:os', 'node:path'] },
+        ],
+      },
+    },
+    {
       // Playwright specs, which the vitest plugin mistakes for its own.
       files: ['tests/**'],
       rules: {
