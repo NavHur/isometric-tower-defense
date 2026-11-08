@@ -108,6 +108,9 @@ test('places a tower and fights a wave without browser errors', async ({
     .poll(() => buildAndReadGold(page), { timeout: BUILD_TIMEOUT_MS })
     .toBeLessThan(startingGold)
   const goldAfterBuild = await readResource(page, 'Gold')
+  await expect(page.locator('body')).toHaveCSS('cursor', 'crosshair')
+  await page.mouse.move(0, 0)
+  await expect(page.locator('body')).toHaveCSS('cursor', 'default')
   // Recorded so a timeout below can be told apart from a combat regression.
   const framesPerSecond = await page.evaluate<number>(
     COUNT_FRAMES_FOR_ONE_SECOND,
