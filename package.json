@@ -9,13 +9,14 @@
     "preview": "vp preview",
     "typecheck": "tsrs -b --pretty",
     "typecheck:tsc": "tsc -b --pretty",
-    "lint": "vp lint",
+    "lint": "vp lint && node tools/complexity/check.ts",
+    "complexity:check": "node tools/complexity/check.ts",
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "test": "vp test run",
     "test:watch": "vp test",
     "test:e2e": "playwright test",
-    "check": "vp fmt --check && vp lint && vp run typecheck && vp test run && vp build"
+    "check": "vp fmt --check && vp run lint && vp run typecheck && vp test run && vp build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

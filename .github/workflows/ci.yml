@@ -27,7 +27,7 @@ jobs:
       - name: Format
         run: vp fmt --check
       - name: Lint
-        run: vp lint
+        run: vp run lint
       - name: Typecheck (tsrs)
         run: vp run typecheck
       - name: Unit tests
