@@ -40,6 +40,10 @@ export function createInitialState(): SimulationState {
   }
 }
 
+function togglePausedState(state: GameState) {
+  return state.phase === 'wave-active' ? { isPaused: !state.isPaused } : state
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   ...createInitialState(),
   selectBuild: (kind) =>
@@ -56,10 +60,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     return outcome.result
   },
   startWave: () => set((state) => startNextWave(state)),
-  togglePause: () =>
-    set((state) =>
-      state.phase === 'wave-active' ? { isPaused: !state.isPaused } : state,
-    ),
+  togglePause: () => set(togglePausedState),
   advanceGame: (deltaSeconds) =>
     set((state) => advanceGame(state, deltaSeconds)),
   restart: () => set(createInitialState()),
