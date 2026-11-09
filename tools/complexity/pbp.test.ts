@@ -59,6 +59,11 @@ const CASES: [string, string, [string, number][]][] = [
     [['f', 3]],
   ],
   [
+    'else-if and else stay flat under nesting',
+    'function f(xs) { for (const x of xs) { if (x) a(); else if (x.y) b(); else c() } }',
+    [['f', 5]],
+  ],
+  [
     'nesting',
     'function f(xs) { for (const x of xs) { if (x) a() } }',
     [['f', 3]],
