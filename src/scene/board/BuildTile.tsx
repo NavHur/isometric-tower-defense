@@ -9,6 +9,7 @@ import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { KenneyModel } from '../assets/KenneyModel'
 import { MODEL_PATHS } from '../assets/modelPaths'
 import { BUILD_TARGET_LIFT } from './buildTarget'
+import { leaveBuildTarget } from './leaveBuildTarget'
 
 const HOVER_OPACITY = 0.34
 
@@ -36,11 +37,7 @@ function useBuildTargetHandlers(position: HexPosition) {
       document.body.style.cursor = building ? 'crosshair' : 'default'
       setHoveredTile(position)
     },
-    onPointerLeave: () => {
-      document.body.style.cursor = 'default'
-      const current = useGameStore.getState().hoveredTile
-      if (current && positionsMatch(current, position)) setHoveredTile(null)
-    },
+    onPointerLeave: () => leaveBuildTarget(position),
   }
 }
 

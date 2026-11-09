@@ -73,7 +73,13 @@ function Slime() {
   )
 }
 
+const CREATURES = {
+  normal: { Model: Goblin, speed: 6, shadowRadius: 0.34, scale: 0.88 },
+  fast: { Model: Slime, speed: 8.5, shadowRadius: 0.3, scale: 0.82 },
+}
+
 export function Enemy({ enemy }: EnemyProps) {
+  const { Model, speed, shadowRadius, scale } = CREATURES[enemy.kind]
   const creature = useRef<Group>(null)
   const elapsed = useRef(0)
   const point = pathProgressToHexPoint(enemy.pathProgress)
@@ -85,16 +91,15 @@ export function Enemy({ enemy }: EnemyProps) {
   useFrame((_, delta) => {
     elapsed.current += delta
     if (!creature.current) return
-    const speed = enemy.kind === 'fast' ? 8.5 : 6
     creature.current.position.y =
       Math.abs(Math.sin(elapsed.current * speed)) * 0.055
   })
 
   return (
     <group position={[x, 0.215, z]} rotation={[0, rotation, 0]}>
-      <TabletopShadow radius={enemy.kind === 'normal' ? 0.34 : 0.3} y={0.008} />
-      <group ref={creature} scale={enemy.kind === 'normal' ? 0.88 : 0.82}>
-        {enemy.kind === 'normal' ? <Goblin /> : <Slime />}
+      <TabletopShadow radius={shadowRadius} y={0.008} />
+      <group ref={creature} scale={scale}>
+        <Model />
       </group>
     </group>
   )
