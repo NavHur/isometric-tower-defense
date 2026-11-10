@@ -22,8 +22,9 @@ jobs:
           node-version: lts
           cache: true
           run-install: true
-      # Separate steps so each tool's time shows in the job summary. vp lint
-      # also type-checks through tsgolint, TypeScript 7's own checker.
+      # Separate steps so each tool's time shows in the job summary. `vp run
+      # lint` runs oxlint, which also type-checks through tsgolint (TypeScript
+      # 7's own checker), then the whole-tree complexity check.
       - name: Format
         run: vp fmt --check
       - name: Lint

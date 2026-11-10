@@ -36,7 +36,7 @@ vp run test:e2e     # Playwright against the build, served by workerd
 
 `vp run check` runs format, lint, typecheck, unit tests, and the Vite build in order. `vp check --fix` applies formatting and lint fixes. `vp run typecheck:tsc` runs tsc 7 directly; where tsrs and tsc disagree, tsc is the truth.
 
-The lint rules live in `tools/oxlint/config.ts`: every category but restriction and nursery runs at error, with cyclomatic complexity capped at 18 (`complexity`) and cognitive complexity at 6 (`pbp/cognitive-complexity`, derived from fleet's pedro-best-practices scorer). `vp run lint` also checks every tracked JS/TS function, including the scorer and tests, using those same limits. Run `vp run complexity:check` for that check alone.
+The lint rules live in `tools/oxlint/config.ts`: every category but restriction and nursery runs at error, with cyclomatic complexity capped at 18 (`complexity`) and cognitive complexity at 6 (`pbp/cognitive-complexity`, derived from fleet's pedro-best-practices skill at ee9727e and maintained here in `tools/oxlint-plugin/pbp.mjs`, its scores pinned by `tools/complexity/pbp.test.ts`). `vp run lint` also checks every tracked JS/TS function, including the scorer and tests, using those same limits. Run `vp run complexity:check` for that check alone.
 
 ## Deployment
 
