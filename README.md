@@ -36,7 +36,7 @@ vp run test:e2e     # Playwright against the build, served by workerd
 
 `vp run check` runs format, lint, typecheck, unit tests, and the Vite build in order. `vp check --fix` applies formatting and lint fixes. `vp run typecheck:tsc` runs tsc 7 directly; where tsrs and tsc disagree, tsc is the truth.
 
-The lint rules live in `tools/oxlint/config.ts`: every category but restriction and nursery runs at error, with cyclomatic complexity capped at 16 (`complexity`) and cognitive complexity at 8 (`pbp/cognitive-complexity`, vendored from fleet's pedro-best-practices skill into `tools/oxlint-plugin/pbp.mjs`).
+The lint rules live in `tools/oxlint/config.ts`: every category but restriction and nursery runs at error, with cyclomatic complexity capped at 18 (`complexity`) and cognitive complexity at 8 (`pbp/cognitive-complexity`, derived from fleet's pedro-best-practices skill at ee9727e and maintained here in `tools/oxlint-plugin/pbp.mjs`, its scores pinned by `tools/complexity/pbp.test.ts`).
 
 ## Deployment
 
@@ -53,7 +53,7 @@ The lint rules live in `tools/oxlint/config.ts`: every category but restriction 
 - `src/ui` — accessible resources, building, wave, and end-state controls
 - `public/models/kenney` — runtime Kenney assets and licenses
 - `tests` — Playwright end-to-end specs
-- `tools` — Oxlint config and the vendored `pbp` complexity plugin
+- `tools` — Oxlint config and the locally maintained `pbp` complexity plugin
 - `docs` — architecture and asset conventions
 
 ## Prototype balance

@@ -1,23 +1,30 @@
-// Vendored from fleet skills/pedro-best-practices/scripts/oxlint-plugin/pbp.mjs
-// at fleet ee9727e. Update it there and copy it here; do not edit in place.
-// Oxlint JS plugin `pbp`: Cognitive Complexity per the SonarSource whitepaper
-// (G. Ann Campbell, v1.7), scored the same way as fleet's pbp-complexity (crates/pbp-complexity/src/scorer.rs).
-// measure_complexity.py loads it for repositories whose oxlint config has no
-// cognitive-complexity rule of its own.
+// Oxlint plugin `pbp`: SonarSource Cognitive Complexity v1.7, derived from fleet's
+// pedro-best-practices oxlint-plugin/pbp.mjs at ee9727e; scores pinned by ../complexity/pbp.test.ts.
 
 const FUNCTIONS = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 const LOOPS = new Set(["ForStatement", "ForInStatement", "ForOfStatement", "WhileStatement", "DoWhileStatement"]);
 const SKIPPED_KEYS = new Set(["parent", "loc", "range", "start", "end", "type", "leadingComments", "trailingComments"]);
 
+function identifierName(node) {
+  return node.type === "Identifier" ? node.name : "<anonymous>";
+}
+
+function bindingName(parent) {
+  switch (parent?.type) {
+    case "VariableDeclarator": return identifierName(parent.id);
+    case "AssignmentExpression": return identifierName(parent.left);
+    case "Property":
+    case "MethodDefinition":
+    case "PropertyDefinition":
+      if (!parent.computed) return parent.key.name ?? String(parent.key.value ?? "<anonymous>");
+      return "<anonymous>";
+    default: return "<anonymous>";
+  }
+}
+
 function functionName(node) {
   if (node.id?.name) return node.id.name;
-  const parent = node.parent;
-  if (parent?.type === "VariableDeclarator" && parent.id.type === "Identifier") return parent.id.name;
-  if (parent?.type === "AssignmentExpression" && parent.left.type === "Identifier") return parent.left.name;
-  if (["Property", "MethodDefinition", "PropertyDefinition"].includes(parent?.type) && !parent.computed) {
-    return parent.key.name ?? String(parent.key.value ?? "<anonymous>");
-  }
-  return "<anonymous>";
+  return bindingName(node.parent);
 }
 
 // Call forms that count as recursion for this function. A bare name inside a
@@ -40,15 +47,16 @@ function callForm(callee) {
   return null;
 }
 
+function* childNodes(value) {
+  const values = Array.isArray(value) ? value : [value];
+  for (const item of values) {
+    if (item && typeof item.type === "string") yield item;
+  }
+}
+
 function* children(node) {
   for (const key of Object.keys(node)) {
-    if (SKIPPED_KEYS.has(key)) continue;
-    const value = node[key];
-    if (Array.isArray(value)) {
-      for (const item of value) if (item && typeof item.type === "string") yield item;
-    } else if (value && typeof value.type === "string") {
-      yield value;
-    }
+    if (!SKIPPED_KEYS.has(key)) yield* childNodes(node[key]);
   }
 }
 
@@ -66,73 +74,112 @@ function runs(operators) {
   return operators.filter((operator, index) => operator !== operators[index - 1]).length;
 }
 
-function score(root) {
-  let total = 0;
-  const seenChains = new WeakSet();
-  const frames = [];
+class ComplexityScore {
+  total = 0;
+  seenChains = new WeakSet();
+  frames = [];
 
-  function walk(node, nesting) {
+  constructor(root) {
+    this.root = root;
+    this.walk(root, 0);
+  }
+
+  walkChildren(node, nesting) {
+    for (const child of children(node)) this.walk(child, nesting);
+  }
+
+  visitFunction(node, nesting) {
+    this.frames.push({ forms: ownCallForms(node), counted: false });
+    this.walkChildren(node, node === this.root ? nesting : nesting + 1);
+    this.frames.pop();
+  }
+
+  visitConditional(node, nesting) {
+    this.total += 1 + nesting;
+    this.walk(node.test, nesting);
+    this.walk(node.consequent, nesting + 1);
+    this.walk(node.alternate, nesting + 1);
+  }
+
+  visitLoop(node, nesting) {
+    this.total += 1 + nesting;
+    for (const child of children(node)) {
+      this.walk(child, child === node.body ? nesting + 1 : nesting);
+    }
+  }
+
+  visitSwitch(node, nesting) {
+    this.total += 1 + nesting;
+    this.walk(node.discriminant, nesting);
+    for (const branch of node.cases) this.walkChildren(branch, nesting + 1);
+  }
+
+  visitCatch(node, nesting) {
+    this.total += 1 + nesting;
+    this.walk(node.param, nesting);
+    this.walk(node.body, nesting + 1);
+  }
+
+  countLogicalChain(node) {
+    if (node.operator === "??" || this.seenChains.has(node)) return;
+    this.total += runs(chainOperators(node, this.seenChains));
+  }
+
+  countRecursion(node) {
+    const frame = this.frames[this.frames.length - 1];
+    const form = callForm(node.callee);
+    if (frame && !frame.counted && form && frame.forms.has(form)) {
+      frame.counted = true;
+      this.total += 1;
+    }
+  }
+
+  countJump(node) {
+    if (node.label) this.total += 1;
+  }
+
+  walk(node, nesting) {
     if (!node) return;
-    if (FUNCTIONS.has(node.type)) {
-      frames.push({ forms: ownCallForms(node), counted: false });
-      const depth = node === root ? nesting : nesting + 1;
-      for (const child of children(node)) walk(child, depth);
-      frames.pop();
-      return;
+    if (FUNCTIONS.has(node.type)) return this.visitFunction(node, nesting);
+    if (LOOPS.has(node.type)) return this.visitLoop(node, nesting);
+    switch (node.type) {
+      case "IfStatement": return this.visitIf(node, nesting);
+      case "ConditionalExpression": return this.visitConditional(node, nesting);
+      case "SwitchStatement": return this.visitSwitch(node, nesting);
+      case "CatchClause": return this.visitCatch(node, nesting);
+      case "LogicalExpression": this.countLogicalChain(node); break;
+      case "BreakStatement":
+      case "ContinueStatement": this.countJump(node); break;
+      case "CallExpression":
+      case "NewExpression": this.countRecursion(node); break;
+      default: break;
     }
-    if (node.type === "IfStatement") return visitIf(node, nesting, false);
-    if (node.type === "ConditionalExpression") {
-      total += 1 + nesting;
-      walk(node.test, nesting);
-      walk(node.consequent, nesting + 1);
-      walk(node.alternate, nesting + 1);
-      return;
-    }
-    if (LOOPS.has(node.type)) {
-      total += 1 + nesting;
-      for (const child of children(node)) walk(child, child === node.body ? nesting + 1 : nesting);
-      return;
-    }
-    if (node.type === "SwitchStatement") {
-      total += 1 + nesting;
-      walk(node.discriminant, nesting);
-      for (const branch of node.cases) for (const child of children(branch)) walk(child, nesting + 1);
-      return;
-    }
-    if (node.type === "CatchClause") {
-      total += 1 + nesting;
-      walk(node.param, nesting);
-      walk(node.body, nesting + 1);
-      return;
-    }
-    if (node.type === "LogicalExpression" && node.operator !== "??" && !seenChains.has(node)) {
-      total += runs(chainOperators(node, seenChains));
-    }
-    if ((node.type === "BreakStatement" || node.type === "ContinueStatement") && node.label) total += 1;
-    if (node.type === "CallExpression" || node.type === "NewExpression") {
-      const frame = frames[frames.length - 1];
-      const form = callForm(node.callee);
-      if (frame && !frame.counted && form && frame.forms.has(form)) {
-        frame.counted = true;
-        total += 1;
-      }
-    }
-    for (const child of children(node)) walk(child, nesting);
+    this.walkChildren(node, nesting);
   }
 
-  function visitIf(node, nesting, elseIf) {
-    total += elseIf ? 1 : 1 + nesting;
-    walk(node.test, nesting);
-    walk(node.consequent, nesting + 1);
-    if (node.alternate?.type === "IfStatement") return visitIf(node.alternate, nesting, true);
+  visitIf(node, nesting) {
+    this.total += 1 + nesting;
+    this.walkIfBranches(node, nesting);
+  }
+
+  visitElseIf(node, nesting) {
+    this.total += 1;
+    this.walkIfBranches(node, nesting);
+  }
+
+  walkIfBranches(node, nesting) {
+    this.walk(node.test, nesting);
+    this.walk(node.consequent, nesting + 1);
+    if (node.alternate?.type === "IfStatement") return this.visitElseIf(node.alternate, nesting);
     if (node.alternate) {
-      total += 1;
-      walk(node.alternate, nesting + 1);
+      this.total += 1;
+      this.walk(node.alternate, nesting + 1);
     }
   }
+}
 
-  walk(root, 0);
-  return total;
+function score(root) {
+  return new ComplexityScore(root).total;
 }
 
 function enclosedByFunction(node) {

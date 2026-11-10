@@ -125,7 +125,7 @@ export const lint: OxlintConfig = {
     'dist',
     'playwright-report',
     'test-results',
-    // Vendored from fleet's pedro-best-practices skill; see its header.
+    // Derived from fleet's pedro-best-practices skill and edited here; see its header.
     'tools/oxlint-plugin',
   ],
   jsPlugins: [
@@ -169,6 +169,15 @@ export const lint: OxlintConfig = {
     {
       files: ['*.config.ts', 'tools/**', 'tests/**'],
       env: { browser: false, node: true },
+    },
+    {
+      files: ['tools/complexity/**'],
+      rules: {
+        'import/no-nodejs-modules': [
+          'error',
+          { allow: ['node:child_process', 'node:fs', 'node:os', 'node:path'] },
+        ],
+      },
     },
     {
       // Playwright specs, which the vitest plugin mistakes for its own.
