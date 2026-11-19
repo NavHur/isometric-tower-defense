@@ -39,6 +39,7 @@
     "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.3",
     "jsdom": "^29.1.1",
+    "oxlint": "1.89.0",
     "react-doctor": "0.9.23",
     "tsrs": "0.20.1-ts7.1.0-beta",
     "typescript": "7.0.2",
