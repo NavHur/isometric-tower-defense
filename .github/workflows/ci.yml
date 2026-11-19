@@ -32,7 +32,7 @@ jobs:
       - name: Typecheck (tsrs)
         run: vp run typecheck
       # Full react-doctor scan, local only (see doctor.config.ts); a new error
-      # fails the job.
+      # outside tests and stories fails the job.
       - name: React Doctor
         run: vp run doctor
       - name: Unit tests
