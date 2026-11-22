@@ -8,7 +8,7 @@ React, TypeScript, Three.js, React Three Fiber, Drei, Zustand, Testing Library, 
 
 ## Setup
 
-Requires [Vite+](https://viteplus.dev/guide/) and a browser with WebGL support. `vp` installs the Bun version pinned in `package.json`.
+Requires [Vite+](https://viteplus.dev/guide/) and a browser with WebGL support. If you use Node 22, use 22.19.0 or newer for the complexity check. `vp` installs the Bun version pinned in `package.json`.
 
 ```bash
 vp install

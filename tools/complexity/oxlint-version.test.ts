@@ -1,23 +1,25 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
+import { Schema } from 'effect'
+import { Struct as struct } from 'effect/Schema'
 import { describe, expect, it } from 'vite-plus/test'
 
-function manifest(path: string): unknown {
-  return JSON.parse(readFileSync(path, 'utf8'))
-}
-
-function hoistedOxlintVersion(): string {
-  const oxlint = manifest('node_modules/oxlint/package.json')
-  if (typeof oxlint === 'object' && oxlint !== null && 'version' in oxlint) {
-    return String(oxlint.version)
-  }
-  throw new Error('node_modules/oxlint/package.json has no version')
-}
+const readOxlint = Schema.decodeUnknownSync(
+  Schema.fromJsonString(struct({ version: Schema.NonEmptyString })),
+)
+const vitePlusDependencies = struct({ oxlint: Schema.NonEmptyString })
+const readVitePlus = Schema.decodeUnknownSync(
+  Schema.fromJsonString(struct({ dependencies: vitePlusDependencies })),
+)
 
 describe('oxlint engine', () => {
   it('runs the complexity check on the oxlint that vite-plus pins', () => {
-    expect(manifest('node_modules/vite-plus/package.json')).toMatchObject({
-      dependencies: { oxlint: `=${hoistedOxlintVersion()}` },
-    })
+    const oxlint = readOxlint(
+      readFileSync('node_modules/oxlint/package.json', 'utf8'),
+    )
+    const vitePlus = readVitePlus(
+      readFileSync('node_modules/vite-plus/package.json', 'utf8'),
+    )
+    expect(vitePlus.dependencies.oxlint).toBe(`=${oxlint.version}`)
   })
 })
