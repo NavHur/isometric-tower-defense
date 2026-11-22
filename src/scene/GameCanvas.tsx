@@ -1,11 +1,7 @@
 import { Canvas } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
 import { Suspense } from 'react'
 import { GameScene } from './GameScene'
 import { useGameStore } from '../game/state/useGameStore'
-import { MODEL_PATHS } from './assets/modelPaths'
-
-for (const path of Object.values(MODEL_PATHS)) useGLTF.preload(path)
 
 export function GameCanvas() {
   return (
