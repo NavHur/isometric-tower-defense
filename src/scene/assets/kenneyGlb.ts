@@ -1,4 +1,4 @@
-import { Effect, Schema, SchemaGetter, SchemaIssue } from 'effect'
+import { Data, Effect, Schema } from 'effect'
 import {
   Array as array,
   Literal as literal,
@@ -82,35 +82,23 @@ const manifest = struct({
 })
 const sceneInRange = Schema.makeFilter<typeof manifest.Type>(
   ({ scene, scenes }) =>
-    scene === undefined ||
-    scene < (scenes?.length ?? 0) ||
+    (scenes?.length ?? 0) > (scene ?? 0) ||
     'GLB default scene is outside its scenes',
 )
 const checkedManifest = manifest.check(sceneInRange)
 
 const utf8 = new TextDecoder('utf-8', { fatal: true })
-const Utf8Text = Schema.Uint8Array.pipe(
-  Schema.decodeTo(Schema.String, {
-    decode: SchemaGetter.transformEffect((bytes, options) =>
-      Effect.try({
-        try: () => utf8.decode(bytes),
-        catch: () =>
-          new SchemaIssue.InvalidValue(
-            { message: 'GLB JSON chunk is not valid UTF-8' },
-            bytes,
-            options,
-          ),
-      }),
-    ),
-    encode: SchemaGetter.transform((text) => new TextEncoder().encode(text)),
-  }),
-)
+
+const { TaggedError: taggedError } = Data
+
+class GlbTextError extends taggedError('GlbTextError')<{
+  message: string
+  cause: unknown
+}> {}
 
 const decodeContainer = Schema.decodeUnknownEffect(GlbContainer)
 const manifestFromJson = Schema.fromJsonString(checkedManifest)
-const decodeManifest = Schema.decodeUnknownEffect(
-  Utf8Text.pipe(Schema.decodeTo(manifestFromJson)),
-)
+const decodeManifest = Schema.decodeUnknownEffect(manifestFromJson)
 
 export const decodeKenneyGlb = Effect.fn('decodeKenneyGlb')(function* decode(
   input: unknown,
@@ -122,6 +110,11 @@ export const decodeKenneyGlb = Effect.fn('decodeKenneyGlb')(function* decode(
     HEADER_BYTES + CHUNK_HEADER_BYTES,
     jsonLength,
   )
-  yield* decodeManifest(json)
+  const text = yield* Effect.try({
+    try: () => utf8.decode(json),
+    catch: (cause) =>
+      new GlbTextError({ message: 'GLB JSON chunk is not valid UTF-8', cause }),
+  })
+  yield* decodeManifest(text)
   return bytes
 })

@@ -11,6 +11,7 @@ const validManifest = '{"asset":{"version":"2.0"},"scenes":[{"name":"Grass"}]}'
 const JSON_CHUNK = 1_313_821_514
 const BIN_CHUNK = 5_130_562
 const OTHER_CHUNK = 0
+const INVALID_UTF8_BYTE = 255
 
 function frameGlb(json: Uint8Array) {
   const length = Math.ceil(json.length / 4) * 4
@@ -189,6 +190,16 @@ describe('KenneyModels', () => {
       'default scene',
     ],
     [
+      'a manifest without scenes',
+      '{"asset":{"version":"2.0"}}',
+      'default scene',
+    ],
+    [
+      'empty scenes with the default scene omitted',
+      '{"asset":{"version":"2.0"},"scenes":[]}',
+      'default scene',
+    ],
+    [
       'a negative default scene',
       '{"asset":{"version":"2.0"},"scene":-1,"scenes":[{}]}',
       '0',
@@ -199,10 +210,20 @@ describe('KenneyModels', () => {
     expect(failure.message).toContain(message)
   })
 
-  it('rejects a JSON chunk that is not valid UTF-8', async () => {
-    const bytes = frameGlb(new Uint8Array([123, 255, 125, 32]))
-    const failure = await loadFailure(new Response(bytes))
+  it('accepts the default scene when its index is omitted', async () => {
+    const manifest = '{"asset":{"version":"2.0"},"scenes":[{}]}'
+    const response = new Response(makeGlb(manifest))
+    const result = await Effect.runPromise(loadModel(response))
+    expect(result.scene).toBeDefined()
+  })
+
+  it('keeps the decoder error when the JSON chunk is not valid UTF-8', async () => {
+    const json = new TextEncoder().encode(validManifest)
+    json[validManifest.indexOf('Grass')] = INVALID_UTF8_BYTE
+    const failure = await loadFailure(new Response(frameGlb(json)))
     expect(failure.stage).toBe('validation')
     expect(failure.message).toContain('JSON chunk is not valid')
+    expect(failure.cause).toMatchObject({ _tag: 'GlbTextError' })
+    expect(failure.cause).toHaveProperty('cause', expect.any(TypeError))
   })
 })
