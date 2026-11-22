@@ -4,9 +4,7 @@ import { LoaderUtils } from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { decodeKenneyGlb } from './kenneyGlb'
 
-const { TaggedError: taggedError } = Data
-
-class ModelLoadError extends taggedError('ModelLoadError')<{
+class ModelLoadError extends Data.TaggedError('ModelLoadError')<{
   path: string
   stage: 'download' | 'validation' | 'parse'
   message: string
@@ -60,8 +58,6 @@ const makeKenneyModels = Effect.gen(function* makeModels() {
   }
 })
 
-const { Service: service } = Context
-
 export const KenneyModels =
-  service<Effect.Success<typeof makeKenneyModels>>('KenneyModels')
+  Context.Service<Effect.Success<typeof makeKenneyModels>>('KenneyModels')
 export const kenneyModelsLayer = Layer.effect(KenneyModels, makeKenneyModels)

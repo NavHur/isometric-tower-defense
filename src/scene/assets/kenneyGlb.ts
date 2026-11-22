@@ -1,11 +1,4 @@
 import { Data, Effect, Schema } from 'effect'
-import {
-  Array as array,
-  Literal as literal,
-  Never,
-  Struct as struct,
-  Tuple as tuple,
-} from 'effect/Schema'
 
 const HEADER_BYTES = 12
 const CHUNK_HEADER_BYTES = 8
@@ -63,22 +56,22 @@ const GlbContainer = Schema.instanceOf(ArrayBuffer).check(
   }),
 )
 
-const gltfVersion = literal('2.0')
-const assetVersion = struct({
+const gltfVersion = Schema.Literal('2.0')
+const assetVersion = Schema.Struct({
   version: gltfVersion,
   minVersion: Schema.optionalKey(gltfVersion),
 })
-const buffer = struct({ uri: Schema.optionalKey(Never) })
-const image = struct({ uri: literal('Textures/colormap.png') })
+const buffer = Schema.Struct({ uri: Schema.optionalKey(Schema.Never) })
+const image = Schema.Struct({ uri: Schema.Literal('Textures/colormap.png') })
 const sceneIndex = Schema.Int.check(Schema.isGreaterThanOrEqualTo(0))
-const sceneEntry = struct({})
-const manifest = struct({
+const sceneEntry = Schema.Struct({})
+const manifest = Schema.Struct({
   asset: assetVersion,
   scene: Schema.optionalKey(sceneIndex),
-  scenes: Schema.optionalKey(array(sceneEntry)),
-  buffers: Schema.optionalKey(array(buffer)),
-  images: Schema.optionalKey(array(image)),
-  extensionsRequired: Schema.optionalKey(tuple([])),
+  scenes: Schema.optionalKey(Schema.Array(sceneEntry)),
+  buffers: Schema.optionalKey(Schema.Array(buffer)),
+  images: Schema.optionalKey(Schema.Array(image)),
+  extensionsRequired: Schema.optionalKey(Schema.Tuple([])),
 })
 const sceneInRange = Schema.makeFilter<typeof manifest.Type>(
   ({ scene, scenes }) =>
@@ -89,9 +82,7 @@ const checkedManifest = manifest.check(sceneInRange)
 
 const utf8 = new TextDecoder('utf-8', { fatal: true })
 
-const { TaggedError: taggedError } = Data
-
-class GlbTextError extends taggedError('GlbTextError')<{
+class GlbTextError extends Data.TaggedError('GlbTextError')<{
   message: string
   cause: unknown
 }> {}

@@ -80,6 +80,11 @@ const restrictionRules = {
   'unicorn/prefer-modern-math-apis': 'error',
   'unicorn/prefer-node-protocol': 'error',
   'unicorn/prefer-number-properties': 'error',
+  // Effect's constructors are capitalized functions called without `new`.
+  'new-cap': [
+    'error',
+    { capIsNewExceptionPattern: String.raw`^(Context|Data|Schema)\.` },
+  ],
 } as const satisfies OxlintConfig['rules']
 
 /** React Compiler checks, carried over from the ESLint react-hooks preset. */
