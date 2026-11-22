@@ -1,4 +1,4 @@
-import { Effect, Schema } from 'effect'
+import { Effect, Schema, SchemaGetter, SchemaIssue } from 'effect'
 import {
   Array as array,
   Literal as literal,
@@ -70,16 +70,46 @@ const assetVersion = struct({
 })
 const buffer = struct({ uri: Schema.optionalKey(Never) })
 const image = struct({ uri: literal('Textures/colormap.png') })
+const sceneIndex = Schema.Int.check(Schema.isGreaterThanOrEqualTo(0))
+const sceneEntry = struct({})
 const manifest = struct({
   asset: assetVersion,
+  scene: Schema.optionalKey(sceneIndex),
+  scenes: Schema.optionalKey(array(sceneEntry)),
   buffers: Schema.optionalKey(array(buffer)),
   images: Schema.optionalKey(array(image)),
   extensionsRequired: Schema.optionalKey(tuple([])),
 })
+const sceneInRange = Schema.makeFilter<typeof manifest.Type>(
+  ({ scene, scenes }) =>
+    scene === undefined ||
+    scene < (scenes?.length ?? 0) ||
+    'GLB default scene is outside its scenes',
+)
+const checkedManifest = manifest.check(sceneInRange)
+
+const utf8 = new TextDecoder('utf-8', { fatal: true })
+const Utf8Text = Schema.Uint8Array.pipe(
+  Schema.decodeTo(Schema.String, {
+    decode: SchemaGetter.transformEffect((bytes, options) =>
+      Effect.try({
+        try: () => utf8.decode(bytes),
+        catch: () =>
+          new SchemaIssue.InvalidValue(
+            { message: 'GLB JSON chunk is not valid UTF-8' },
+            bytes,
+            options,
+          ),
+      }),
+    ),
+    encode: SchemaGetter.transform((text) => new TextEncoder().encode(text)),
+  }),
+)
 
 const decodeContainer = Schema.decodeUnknownEffect(GlbContainer)
+const manifestFromJson = Schema.fromJsonString(checkedManifest)
 const decodeManifest = Schema.decodeUnknownEffect(
-  Schema.fromJsonString(manifest),
+  Utf8Text.pipe(Schema.decodeTo(manifestFromJson)),
 )
 
 export const decodeKenneyGlb = Effect.fn('decodeKenneyGlb')(function* decode(
@@ -92,6 +122,6 @@ export const decodeKenneyGlb = Effect.fn('decodeKenneyGlb')(function* decode(
     HEADER_BYTES + CHUNK_HEADER_BYTES,
     jsonLength,
   )
-  yield* decodeManifest(new TextDecoder().decode(json))
+  yield* decodeManifest(json)
   return bytes
 })

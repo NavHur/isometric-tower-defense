@@ -2,63 +2,12 @@ import { layer as nodeSpawner } from '@effect/platform-node-shared/NodeChildProc
 import { layer as nodeFileSystem } from '@effect/platform-node-shared/NodeFileSystem'
 import { layer as nodePath } from '@effect/platform-node-shared/NodePath'
 import { runMain } from '@effect/platform-node-shared/NodeRuntime'
-import { Data, Effect, FileSystem, Layer, Path, Schema, Stream } from 'effect'
+import { Effect, FileSystem, Layer, Path } from 'effect'
 import { ChildProcess } from 'effect/process'
 import { ChildProcessSpawner } from 'effect/process/ChildProcessSpawner'
 import { lint } from '../oxlint/config.ts'
 import { requireComplexityRules } from './rules.ts'
-
-const { TaggedError: taggedError } = Data
-class GitListError extends taggedError('GitListError')<{
-  code: number
-  message: string
-}> {}
-
-const gitOutput = Schema.String.check(
-  Schema.makeFilter(
-    (output) =>
-      output.length === 0 ||
-      output.endsWith('\0') ||
-      'Expected NUL-terminated Git paths',
-  ),
-)
-const { Array: array } = Schema
-const decodeGitOutput = Schema.decodeUnknownEffect(gitOutput)
-const decodePaths = Schema.decodeUnknownEffect(array(Schema.NonEmptyString))
-
-// Include tracked tooling and tests even when application lint ignores them.
-const listFiles = ChildProcess.make(
-  'git',
-  [
-    'ls-files',
-    '-z',
-    '--',
-    '*.js',
-    '*.jsx',
-    '*.mjs',
-    '*.cjs',
-    '*.ts',
-    '*.tsx',
-    '*.mts',
-    '*.cts',
-  ],
-  { stderr: 'inherit' },
-)
-
-const trackedSources = Effect.gen(function* listTrackedSources() {
-  const spawner = yield* ChildProcessSpawner
-  const child = yield* spawner.spawn(listFiles)
-  const output = yield* child.stdout.pipe(Stream.decodeText, Stream.mkString)
-  const code = yield* child.exitCode
-  if (code !== 0) {
-    return yield* new GitListError({
-      code,
-      message: `git ls-files exited with status ${code}`,
-    })
-  }
-  const paths = yield* decodeGitOutput(output)
-  return yield* decodePaths(paths.split('\0').slice(0, -1))
-})
+import { trackedSources } from './trackedSources.ts'
 
 const check = Effect.gen(function* checkComplexity() {
   const fs = yield* FileSystem.FileSystem
