@@ -1,58 +1,47 @@
-import { execFileSync, spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { layer as nodeSpawner } from '@effect/platform-node-shared/NodeChildProcessSpawner'
+import { layer as nodeFileSystem } from '@effect/platform-node-shared/NodeFileSystem'
+import { layer as nodePath } from '@effect/platform-node-shared/NodePath'
+import { runMain } from '@effect/platform-node-shared/NodeRuntime'
+import { Effect, FileSystem, Layer, Path } from 'effect'
+import { ChildProcess } from 'effect/process'
+import { ChildProcessSpawner } from 'effect/process/ChildProcessSpawner'
 import { lint } from '../oxlint/config.ts'
 import { requireComplexityRules } from './rules.ts'
+import { trackedSources } from './trackedSources.ts'
 
-// Include tracked tooling and tests even when application lint ignores them.
-const files = execFileSync(
-  'git',
-  [
-    'ls-files',
-    '-z',
-    '--',
-    '*.js',
-    '*.jsx',
-    '*.mjs',
-    '*.cjs',
-    '*.ts',
-    '*.tsx',
-    '*.mts',
-    '*.cts',
-  ],
-  { encoding: 'utf8' },
-)
-  .split('\0')
-  .filter(Boolean)
-const directory = mkdtempSync(join(tmpdir(), 'tower-defense-complexity-'))
-const config = join(directory, '.oxlintrc.json')
-
-try {
-  writeFileSync(
+const check = Effect.gen(function* checkComplexity() {
+  const fs = yield* FileSystem.FileSystem
+  const path = yield* Path.Path
+  const spawner = yield* ChildProcessSpawner
+  const files = yield* trackedSources
+  const directory = yield* fs.makeTempDirectoryScoped({
+    prefix: 'tower-defense-complexity-',
+  })
+  const config = path.join(directory, '.oxlintrc.json')
+  yield* fs.writeFileString(
     config,
     JSON.stringify({
       categories: { correctness: 'off' },
       jsPlugins: [
-        { name: 'pbp', specifier: resolve('tools/oxlint-plugin/pbp.mjs') },
+        { name: 'pbp', specifier: path.resolve('tools/oxlint-plugin/pbp.mjs') },
       ],
       rules: requireComplexityRules(lint.rules),
     }),
   )
-  const result = spawnSync(
+  const oxlint = ChildProcess.make(
     process.execPath,
     [
-      resolve('node_modules/oxlint/bin/oxlint'),
+      path.resolve('node_modules/oxlint/bin/oxlint'),
       '--config',
       config,
       '--no-ignore',
       ...files,
     ],
-    { stdio: 'inherit' },
+    { stdin: 'inherit', stdout: 'inherit', stderr: 'inherit' },
   )
-  if (result.error) throw result.error
-  if (result.signal) throw new Error(`Oxlint terminated by ${result.signal}`)
-  process.exitCode = result.status ?? 1
-} finally {
-  rmSync(directory, { recursive: true, force: true })
-}
+  process.exitCode = yield* spawner.exitCode(oxlint)
+})
+
+const platform = Layer.merge(nodeFileSystem, nodePath)
+const layers = nodeSpawner.pipe(Layer.provideMerge(platform))
+runMain(check.pipe(Effect.scoped, Effect.provide(layers)))

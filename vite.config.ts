@@ -2,6 +2,7 @@ import { defineConfig, lazyPlugins } from 'vite-plus'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { lint } from './tools/oxlint/config.ts'
+import { runsUnderVitest } from './tools/vite/vitestMarker.ts'
 
 // https://viteplus.dev/config/
 export default defineConfig({
@@ -30,6 +31,6 @@ export default defineConfig({
   // The unit tests run in jsdom; the Worker runtime would claim Vitest's server.
   plugins: lazyPlugins(() => [
     react(),
-    process.env.VITEST === undefined ? cloudflare() : [],
+    runsUnderVitest(process.env) ? [] : cloudflare(),
   ]),
 })

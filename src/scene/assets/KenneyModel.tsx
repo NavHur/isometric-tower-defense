@@ -1,5 +1,6 @@
-import { Clone, useGLTF } from '@react-three/drei'
+import { Clone } from '@react-three/drei'
 import { Suspense } from 'react'
+import { useKenneyModel } from './useKenneyModel'
 
 interface KenneyModelProps {
   path: string
@@ -12,7 +13,7 @@ function LoadedKenneyModel({
   castShadow = true,
   receiveShadow = true,
 }: KenneyModelProps) {
-  const { scene } = useGLTF(path)
+  const { scene } = useKenneyModel(path)
   return (
     <Clone
       object={scene}
