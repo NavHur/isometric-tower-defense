@@ -25,7 +25,7 @@ const check = Effect.gen(function* checkComplexity() {
       jsPlugins: [
         { name: 'pbp', specifier: path.resolve('tools/oxlint-plugin/pbp.mjs') },
       ],
-      rules: requireComplexityRules(lint.rules),
+      rules: yield* requireComplexityRules(lint.rules),
     }),
   )
   const oxlint = ChildProcess.make(
