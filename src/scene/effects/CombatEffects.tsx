@@ -158,6 +158,7 @@ function ImpactBurst({ id, position, onComplete }: ImpactBurstProps) {
 function landedImpacts(
   state: SimulationState,
   previous: SimulationState,
+  batch: number,
 ): ImpactEffect[] {
   const inFlight = new Set(state.projectiles.map((projectile) => projectile.id))
   return previous.projectiles
@@ -175,7 +176,7 @@ function landedImpacts(
       const [x, , z] = hexToWorld(pathProgressToHexPoint(target.pathProgress))
       return [
         {
-          id: `${projectile.id}:${performance.now()}`,
+          id: `${projectile.id}:${batch}`,
           position: [x, IMPACT_HEIGHT, z] as const,
         },
       ]
@@ -183,13 +184,19 @@ function landedImpacts(
 }
 
 export function CombatEffects() {
+  const nextImpactBatch = useRef(0)
   const [impacts, setImpacts] = useState<readonly ImpactEffect[]>([])
 
   useEffect(
     () =>
       useGameStore.subscribe((state, previousState) => {
-        const landed = landedImpacts(state, previousState)
+        const landed = landedImpacts(
+          state,
+          previousState,
+          nextImpactBatch.current,
+        )
         if (landed.length === 0) return
+        nextImpactBatch.current += 1
         setImpacts((current) => [...current, ...landed].slice(-MAX_IMPACTS))
       }),
     [],

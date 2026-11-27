@@ -1,3 +1,4 @@
+import { Data, Effect } from 'effect'
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { BOARD_CENTER_OFFSET } from '../src/game/config/map.ts'
@@ -36,10 +37,16 @@ function buildHexScreenUnits(): ScreenUnits {
   ])
 }
 
+class MissingGameBounds extends Data.TaggedError('MissingGameBounds') {
+  override get message() {
+    return 'game container has no bounding box'
+  }
+}
+
 /** Clicks the build hex through the canvas, where the raycaster finds it. */
 async function clickBuildHex(page: Page): Promise<void> {
   const box = await page.getByTestId('game-container').boundingBox()
-  if (!box) throw new Error('game container has no bounding box')
+  if (!box) return Effect.runPromise(Effect.fail(new MissingGameBounds()))
   const zoom = baselineZoom(box.width, box.height)
   const units = buildHexScreenUnits()
   await page.mouse.click(

@@ -1,3 +1,4 @@
+import { Effect } from 'effect'
 import type { HexPosition } from '../../game/types/towerDefense'
 import { hexToWorld } from '../../game/utils/hexCoordinates'
 import { KenneyModel } from '../assets/KenneyModel'
@@ -18,7 +19,8 @@ interface PathTileProps {
 }
 
 export function PathTile({ position }: PathTileProps) {
-  const presentation = getPathPresentation(position)
+  const presentation = Effect.runSync(getPathPresentation(position))
+  const isCastle = presentation.kind === 'end'
   const path = PATH_MODELS[presentation.kind]
   const [x, , z] = hexToWorld(position)
 
@@ -26,8 +28,8 @@ export function PathTile({ position }: PathTileProps) {
     <group position={[x, 0, z]}>
       <group scale={1.025}>
         <KenneyModel
-          path={MODEL_PATHS.grass}
-          castShadow={false}
+          path={isCastle ? MODEL_PATHS.castle : MODEL_PATHS.grass}
+          castShadow={isCastle}
           receiveShadow
         />
       </group>

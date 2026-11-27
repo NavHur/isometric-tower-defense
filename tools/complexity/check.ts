@@ -1,11 +1,9 @@
-import { layer as nodeSpawner } from '@effect/platform-node-shared/NodeChildProcessSpawner'
-import { layer as nodeFileSystem } from '@effect/platform-node-shared/NodeFileSystem'
-import { layer as nodePath } from '@effect/platform-node-shared/NodePath'
 import { runMain } from '@effect/platform-node-shared/NodeRuntime'
-import { Effect, FileSystem, Layer, Path } from 'effect'
+import { Effect, FileSystem, Path } from 'effect'
 import { ChildProcess } from 'effect/process'
 import { ChildProcessSpawner } from 'effect/process/ChildProcessSpawner'
 import { lint } from '../oxlint/config.ts'
+import { nodePlatform } from './nodePlatform.ts'
 import { requireComplexityRules } from './rules.ts'
 import { trackedSources } from './trackedSources.ts'
 
@@ -25,7 +23,7 @@ const check = Effect.gen(function* checkComplexity() {
       jsPlugins: [
         { name: 'pbp', specifier: path.resolve('tools/oxlint-plugin/pbp.mjs') },
       ],
-      rules: requireComplexityRules(lint.rules),
+      rules: yield* requireComplexityRules(lint.rules),
     }),
   )
   const oxlint = ChildProcess.make(
@@ -42,6 +40,4 @@ const check = Effect.gen(function* checkComplexity() {
   process.exitCode = yield* spawner.exitCode(oxlint)
 })
 
-const platform = Layer.merge(nodeFileSystem, nodePath)
-const layers = nodeSpawner.pipe(Layer.provideMerge(platform))
-runMain(check.pipe(Effect.scoped, Effect.provide(layers)))
+runMain(check.pipe(Effect.scoped, Effect.provide(nodePlatform)))

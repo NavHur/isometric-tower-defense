@@ -1,53 +1,63 @@
 // @vitest-environment node
-import { spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { Effect, FileSystem, Path, Stream } from 'effect'
+import { ChildProcess } from 'effect/process'
+import { ChildProcessSpawner } from 'effect/process/ChildProcessSpawner'
 import { describe, expect, it } from 'vite-plus/test'
+import { nodePlatform } from './nodePlatform.ts'
 
 function diagnostics(source: string, max: number) {
-  const directory = mkdtempSync(join(tmpdir(), 'pbp-characterization-'))
-  const input = join(directory, 'input.js')
-  const config = join(directory, '.oxlintrc.json')
-  try {
-    writeFileSync(input, source)
-    writeFileSync(
+  const run = Effect.gen(function* lintFixture() {
+    const fs = yield* FileSystem.FileSystem
+    const path = yield* Path.Path
+    const spawner = yield* ChildProcessSpawner
+    const directory = yield* fs.makeTempDirectoryScoped({
+      prefix: 'pbp-characterization-',
+    })
+    const input = path.join(directory, 'input.js')
+    const config = path.join(directory, '.oxlintrc.json')
+    yield* fs.writeFileString(input, source)
+    yield* fs.writeFileString(
       config,
       JSON.stringify({
         categories: { correctness: 'off' },
         jsPlugins: [
           {
             name: 'pbp',
-            specifier: resolve('tools/oxlint-plugin/pbp.mjs'),
+            specifier: path.resolve('tools/oxlint-plugin/pbp.mjs'),
           },
         ],
         rules: { 'pbp/cognitive-complexity': ['error', { max }] },
       }),
     )
-    const result = spawnSync(
-      process.execPath,
+    const command = ChildProcess.make(process.execPath, [
+      path.resolve('node_modules/oxlint/bin/oxlint'),
+      '--config',
+      config,
+      '--format',
+      'json',
+      input,
+    ])
+    const child = yield* spawner.spawn(command)
+    const [stdout, stderr, code] = yield* Effect.all(
       [
-        resolve('node_modules/oxlint/bin/oxlint'),
-        '--config',
-        config,
-        '--format',
-        'json',
-        input,
+        child.stdout.pipe(Stream.decodeText, Stream.mkString),
+        child.stderr.pipe(Stream.decodeText, Stream.mkString),
+        child.exitCode,
       ],
-      { encoding: 'utf8' },
+      { concurrency: 'unbounded' },
     )
-    expect(result.error).toBeUndefined()
-    expect([0, 1]).toContain(result.status)
-    expect(result.stderr).toBe('')
+    expect([0, 1]).toContain(code)
+    expect(stderr).toBe('')
     return Array.from(
-      result.stdout.matchAll(
+      stdout.matchAll(
         /Function `(?<name>.*?)` has cognitive complexity (?<score>\d+)/gu,
       ),
       ([, name, value]) => [name, Number(value)],
     )
-  } finally {
-    rmSync(directory, { recursive: true, force: true })
-  }
+  })
+  return Effect.runPromise(
+    run.pipe(Effect.scoped, Effect.provide(nodePlatform)),
+  )
 }
 
 const CASES: [string, string, [string, number][]][] = [
@@ -132,13 +142,13 @@ const CASES: [string, string, [string, number][]][] = [
 ]
 
 describe('cognitive complexity plugin', () => {
-  it.each(CASES)('%s', (_label, source, expected) => {
-    expect(diagnostics(source, 0)).toStrictEqual(expected)
+  it.each(CASES)('%s', async (_label, source, expected) => {
+    await expect(diagnostics(source, 0)).resolves.toStrictEqual(expected)
   })
 
-  it('only reports scores strictly above the configured maximum', () => {
+  it('only reports scores strictly above the configured maximum', async () => {
     const source = 'function f() { if (a) b(); if (c) d() }'
-    expect(diagnostics(source, 2)).toStrictEqual([])
-    expect(diagnostics(source, 1)).toStrictEqual([['f', 2]])
+    await expect(diagnostics(source, 2)).resolves.toStrictEqual([])
+    await expect(diagnostics(source, 1)).resolves.toStrictEqual([['f', 2]])
   })
 })

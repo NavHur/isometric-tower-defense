@@ -1,3 +1,4 @@
+import { Data, Effect } from 'effect'
 import { PATH_CELLS } from '../../game/config/map'
 import { positionsMatch } from '../../game/rules/canPlaceTower'
 import type { HexPosition } from '../../game/types/towerDefense'
@@ -8,14 +9,25 @@ export interface PathPresentation {
   rotation: number
 }
 
+class InvalidPathTile extends Data.TaggedError('InvalidPathTile')<{
+  position: HexPosition
+  message: string
+}> {}
+
 function directionIndex(from: HexPosition, to: HexPosition) {
   const q = to.q - from.q
   const r = to.r - from.r
   const index = HEX_DIRECTIONS.findIndex(
     (direction) => direction.q === q && direction.r === r,
   )
-  if (index === -1) throw new Error('Path cells must be axial neighbors')
-  return index
+  return index === -1
+    ? Effect.fail(
+        new InvalidPathTile({
+          position: from,
+          message: 'Path cells must be axial neighbors',
+        }),
+      )
+    : Effect.succeed(index)
 }
 
 function rotatedSetMatches(
@@ -30,53 +42,59 @@ function rotatedSetMatches(
 }
 
 function findRotation(
+  position: HexPosition,
   baseDirections: readonly number[],
   desiredDirections: readonly number[],
 ) {
   const steps = Array.from({ length: 6 }, (_, index) => index).find((index) =>
     rotatedSetMatches(baseDirections, desiredDirections, index),
   )
-  if (steps === undefined) throw new Error('Unsupported path connection')
-  return steps * (Math.PI / 3)
+  return steps === undefined
+    ? Effect.fail(
+        new InvalidPathTile({
+          position,
+          message: 'Unsupported path connection',
+        }),
+      )
+    : Effect.succeed(steps * (Math.PI / 3))
 }
 
-export function getPathPresentation(position: HexPosition): PathPresentation {
-  const index = PATH_CELLS.findIndex((cell) => positionsMatch(cell, position))
-  if (index === -1)
-    throw new Error('Path presentation requested for a grass tile')
+const PATH_CONNECTIONS = {
+  start: [3],
+  end: [3],
+  straight: [0, 3],
+  cornerSharp: [2, 3],
+  corner: [1, 3],
+} as const
 
-  if (index === 0) {
-    const connection = directionIndex(position, PATH_CELLS[1])
-    return { kind: 'start', rotation: findRotation([3], [connection]) }
-  }
-  if (index === PATH_CELLS.length - 1) {
-    const connection = directionIndex(position, PATH_CELLS[index - 1])
-    return { kind: 'end', rotation: findRotation([3], [connection]) }
-  }
-
-  const connections = [
-    directionIndex(position, PATH_CELLS[index - 1]),
-    directionIndex(position, PATH_CELLS[index + 1]),
-  ]
-  const separation = Math.min(
-    (connections[0] - connections[1] + 6) % 6,
-    (connections[1] - connections[0] + 6) % 6,
-  )
-
-  if (separation === 3) {
-    return {
-      kind: 'straight',
-      rotation: findRotation([0, 3], connections),
-    }
-  }
-  if (separation === 1) {
-    return {
-      kind: 'cornerSharp',
-      rotation: findRotation([2, 3], connections),
-    }
-  }
-  return {
-    kind: 'corner',
-    rotation: findRotation([1, 3], connections),
-  }
+function cornerKind(left: number, right: number): PathPresentation['kind'] {
+  const separation = Math.min((left - right + 6) % 6, (right - left + 6) % 6)
+  if (separation === 3) return 'straight'
+  return separation === 1 ? 'cornerSharp' : 'corner'
 }
+
+export const getPathPresentation = Effect.fn('getPathPresentation')(
+  function* presentTile(position: HexPosition) {
+    const index = PATH_CELLS.findIndex((cell) => positionsMatch(cell, position))
+    if (index === -1)
+      return yield* new InvalidPathTile({
+        position,
+        message: 'Path presentation requested for a grass tile',
+      })
+    const connections: number[] = []
+    if (index > 0)
+      connections.push(yield* directionIndex(position, PATH_CELLS[index - 1]))
+    if (index < PATH_CELLS.length - 1)
+      connections.push(yield* directionIndex(position, PATH_CELLS[index + 1]))
+    let kind: PathPresentation['kind'] = 'end'
+    if (index === 0) kind = 'start'
+    else if (connections.length === 2)
+      kind = cornerKind(connections[0], connections[1])
+    const rotation = yield* findRotation(
+      position,
+      PATH_CONNECTIONS[kind],
+      connections,
+    )
+    return { kind, rotation }
+  },
+)

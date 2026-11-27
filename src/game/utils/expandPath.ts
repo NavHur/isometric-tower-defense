@@ -1,35 +1,23 @@
 import type { HexPosition } from '../types/towerDefense'
+import { HEX_DIRECTIONS } from './hexCoordinates'
 
-/** The cells after `start`, up to and including `end`, one axial step apart. */
-function segmentCells(start: HexPosition, end: HexPosition): HexPosition[] {
-  const qDelta = end.q - start.q
-  const rDelta = end.r - start.r
-  const steps = Math.max(
-    Math.abs(qDelta),
-    Math.abs(rDelta),
-    Math.abs(qDelta + rDelta),
-  )
-  if (steps === 0) return []
-  if (qDelta !== 0 && rDelta !== 0 && qDelta + rDelta !== 0) {
-    throw new Error('Path segments must follow a straight axial direction')
-  }
+const [east, northeast, northwest, west, southwest, southeast] = HEX_DIRECTIONS
+const directions = { east, northeast, northwest, west, southwest, southeast }
+type PathLeg = readonly [direction: keyof typeof directions, cells: number]
 
-  const qStep = qDelta / steps
-  const rStep = rDelta / steps
-  return Array.from({ length: steps }, (_, index) => ({
-    q: start.q + qStep * (index + 1),
-    r: start.r + rStep * (index + 1),
-  }))
-}
-
+/** Walk each leg one axial neighbor at a time, emitting its endpoint once. */
 export function expandPath(
-  waypoints: readonly HexPosition[],
+  start: HexPosition,
+  legs: readonly PathLeg[],
 ): readonly HexPosition[] {
-  if (waypoints.length === 0) return []
-
-  const cells: HexPosition[] = [{ ...waypoints[0] }]
-  for (let index = 1; index < waypoints.length; index += 1) {
-    cells.push(...segmentCells(waypoints[index - 1], waypoints[index]))
+  let position = start
+  const cells = [position]
+  for (const [direction, length] of legs) {
+    const step = directions[direction]
+    for (let index = 0; index < length; index += 1) {
+      position = { q: position.q + step.q, r: position.r + step.r }
+      cells.push(position)
+    }
   }
   return cells
 }

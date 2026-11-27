@@ -37,11 +37,10 @@ function buildWhileAffordable(run: PlannedRun): PlannedRun {
   while (canBuildNext(next)) {
     const position = PLANNED_TOWERS[next.built]
     const { state, result } = placeTower(next.state, 'pulseTower', position)
-    if (!result.ok) {
-      throw new Error(
-        `planned tower ${next.built} at ${position.q},${position.r} was rejected: ${result.reason}`,
-      )
-    }
+    expect(
+      result,
+      `planned tower ${next.built} at ${position.q},${position.r}`,
+    ).toMatchObject({ ok: true })
     next = { state, built: next.built + 1 }
   }
   return next
