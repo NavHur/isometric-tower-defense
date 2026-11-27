@@ -7,21 +7,18 @@ import {
   hexToWorld,
 } from '../utils/hexCoordinates'
 
-export const PATH_WAYPOINTS: readonly HexPosition[] = [
-  { q: -9, r: 2 },
-  { q: -6, r: 2 },
-  { q: -6, r: 5 },
-  { q: -2, r: 5 },
-  { q: 1, r: 2 },
-  { q: 3, r: 2 },
-  { q: 5, r: 0 },
-  { q: 5, r: -2 },
-  { q: 7, r: -4 },
-  { q: 7, r: -6 },
-  { q: 9, r: -8 },
-]
-
-export const PATH_CELLS = expandPath(PATH_WAYPOINTS)
+export const PATH_CELLS = expandPath({ q: -9, r: 2 }, [
+  ['east', 3],
+  ['southeast', 3],
+  ['east', 4],
+  ['northeast', 3],
+  ['east', 2],
+  ['northeast', 2],
+  ['northwest', 2],
+  ['northeast', 2],
+  ['northwest', 2],
+  ['northeast', 2],
+])
 export const PATH_LENGTH = PATH_CELLS.length - 1
 
 const ISLAND_LOBES = [
